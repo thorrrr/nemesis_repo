@@ -21,8 +21,9 @@ baobab
 bash-completion
 bat
 bibata-cursor-theme-bin
+bitwarden
+brave-nightly
 catfish
-chromium
 cpuid
 curl
 dash
@@ -56,12 +57,9 @@ gzip
 hardcode-fixer-git
 hardinfo-gtk3
 hddtemp
-htop
+btop
 hw-probe
-inkscape
-insync
 kvantum
-lastpass
 linux-firmware-qlogic
 logrotate
 lolcat
@@ -74,6 +72,7 @@ mintstick-git
 mkinitcpio-firmware
 mlocate
 most
+mpv
 neofetch
 network-manager-applet
 networkmanager-openvpn
@@ -95,7 +94,6 @@ polkit-gnome
 pv
 python-pylint
 python-pywal
-qbittorrent
 rate-mirrors-bin
 ripgrep
 rofi
@@ -138,11 +136,6 @@ urxvt-fullscreen
 urxvt-perls
 urxvt-resize-font-git
 variety
-visual-studio-code-bin
-vivaldi
-vivaldi-ffmpeg-codecs
-vivaldi-widevine
-vlc
 volumeicon
 wd719x-firmware
 wget
@@ -156,6 +149,7 @@ xfce4-settings
 xfce4-taskmanager
 xfce4-terminal
 xorg-xkill
+xrandr
 yay-git
 zsh
 zsh-completions
