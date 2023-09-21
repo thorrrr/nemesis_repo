@@ -79,7 +79,7 @@ sudo pacman -S --noconfirm --needed bash-completion
 sudo pacman -S --noconfirm --needed bat
 sudo pacman -S --noconfirm --needed bibata-cursor-theme-bin
 sudo pacman -S --noconfirm --needed catfish
-sudo pacman -S --noconfirm --needed chromium
+sudo pacman -S --noconfirm --needed brave-nightly
 sudo pacman -S --noconfirm --needed cpuid
 sudo pacman -S --noconfirm --needed curl
 sudo pacman -S --noconfirm --needed dconf-editor
@@ -111,13 +111,13 @@ sudo pacman -S --noconfirm --needed gvfs-smb
 sudo pacman -S --noconfirm --needed hardcode-fixer-git
 sudo pacman -S --noconfirm --needed hardinfo-gtk3
 sudo pacman -S --noconfirm --needed hddtemp
-sudo pacman -S --noconfirm --needed htop
+sudo pacman -S --noconfirm --needed btop
 sudo pacman -S --noconfirm --needed hw-probe
 sudo pacman -S --noconfirm --needed inkscape
 sudo pacman -S --noconfirm --needed insync
 sudo pacman -S --noconfirm --needed kvantum
 sudo pacman -S --noconfirm --needed linux-firmware-qlogic
-sudo pacman -S --noconfirm --needed lastpass
+sudo pacman -S --noconfirm --needed bitwarden
 sudo pacman -S --noconfirm --needed logrotate
 sudo pacman -S --noconfirm --needed lolcat
 sudo pacman -S --noconfirm --needed lshw
@@ -146,7 +146,6 @@ sudo pacman -S --noconfirm --needed polkit-gnome
 sudo pacman -S --noconfirm --needed python-pylint
 sudo pacman -S --noconfirm --needed python-pywal
 sudo pacman -S --noconfirm --needed pv
-sudo pacman -S --noconfirm --needed qbittorrent
 sudo pacman -S --noconfirm --needed rate-mirrors-bin
 sudo pacman -S --noconfirm --needed ripgrep
 sudo pacman -S --noconfirm --needed rsync
@@ -155,7 +154,6 @@ sudo pacman -S --noconfirm --needed sardi-icons
 sudo pacman -S --noconfirm --needed simplescreenrecorder
 sudo pacman -S --noconfirm --needed sparklines-git
 sudo pacman -S --noconfirm --needed speedtest-cli-git
-sudo pacman -S --noconfirm --needed spotify
 sudo pacman -S --noconfirm --needed squashfs-tools
 sudo pacman -S --noconfirm --needed sublime-text-4
 sudo pacman -S --noconfirm --needed surfn-icons-git
@@ -176,11 +174,6 @@ sudo pacman -S --noconfirm --needed ttf-roboto-mono
 sudo pacman -S --noconfirm --needed ttf-ubuntu-font-family
 sudo pacman -S --noconfirm --needed upd72020x-fw
 sudo pacman -S --noconfirm --needed variety
-sudo pacman -S --noconfirm --needed visual-studio-code-bin
-sudo pacman -S --noconfirm --needed vivaldi
-sudo pacman -S --noconfirm --needed vivaldi-ffmpeg-codecs
-sudo pacman -S --noconfirm --needed vivaldi-widevine
-sudo pacman -S --noconfirm --needed vlc
 sudo pacman -S --noconfirm --needed wd719x-firmware
 sudo pacman -S --noconfirm --needed wget
 sudo pacman -S --noconfirm --needed wttr
