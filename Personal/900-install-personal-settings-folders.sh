@@ -64,8 +64,8 @@ echo
 [ -d $HOME"/.config/fish" ] || mkdir -p $HOME"/.config/fish"
 [ -d $HOME"/.config/neofetch" ] || mkdir -p $HOME"/.config/neofetch"
 [ -d $HOME"/DATA" ] || mkdir -p $HOME"/DATA"
-#[ -d $HOME"/Insync" ] || mkdir -p $HOME"/Insync"
-#[ -d $HOME"/Projects" ] || mkdir -p $HOME"/Projects"
+[ -d $HOME"/Insync" ] || mkdir -p $HOME"/Insync"
+[ -d $HOME"/Projects" ] || mkdir -p $HOME"/Projects"
 
 echo
 tput setaf 2

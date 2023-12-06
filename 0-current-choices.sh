@@ -60,6 +60,12 @@ REPLACE="ParallelDownloads = 20"
 sudo sed -i "s/$FIND/$REPLACE/g" /etc/pacman.conf
 
 echo
+echo "Pacman parallel downloads if needed - for EOS"
+FIND="ParallelDownloads = 5"
+REPLACE="ParallelDownloads = 20"
+sudo sed -i "s/$FIND/$REPLACE/g" /etc/pacman.conf
+
+echo
 tput setaf 3
 echo "################################################################"
 echo "################### Start current choices"
@@ -78,6 +84,7 @@ sh 120-install-core-software*
 sh 150-install-chadwm*
 sh 160-install-bluetooth*
 sh 170-install-cups*
+sh 180-install-test-software*
 
 sh 200-software-AUR-repo*
 #sh 300-sardi-extra-icons-AUR-repo*
