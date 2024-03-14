@@ -1,16 +1,7 @@
 #!/bin/bash
 #set -e
 ##################################################################################################################
-# Author    : Erik Dubois
-# Website   : https://www.erikdubois.be
-# Website   : https://www.alci.online
-# Website   : https://www.ariser.eu
-# Website   : https://www.arcolinux.info
-# Website   : https://www.arcolinux.com
-# Website   : https://www.arcolinuxd.com
-# Website   : https://www.arcolinuxb.com
-# Website   : https://www.arcolinuxiso.com
-# Website   : https://www.arcolinuxforum.com
+# Author    : Dale Holden
 ##################################################################################################################
 #
 #   DO NOT JUST RUN THIS. EXAMINE AND JUDGE. RUN AT YOUR OWN RISK.
@@ -27,8 +18,8 @@
 #tput setaf 8 = light blue
 ##################################################################################################################
 
-sudo localectl set-keymap be-latin1
-sudo localectl set-locale LANG=en_US.UTF-8
+#sudo localectl set-keymap be-latin1
+#sudo localectl set-locale LANG=en_GB.UTF-8
 echo
 tput setaf 2
 echo "################################################################"
