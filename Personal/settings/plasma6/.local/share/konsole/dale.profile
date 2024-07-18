@@ -2,7 +2,8 @@
 ColorScheme=Breeze
 
 [General]
-Name=edu
+Environment=TERM=xterm-256color,COLORTERM=truecolor
+Name=dale
 Parent=FALLBACK/
 TerminalColumns=130
 TerminalRows=40
