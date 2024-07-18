@@ -16,6 +16,9 @@
 #tput setaf 6 = cyan
 #tput setaf 7 = gray
 #tput setaf 8 = light blue
+
+#end colors
+#tput sgr0
 ##################################################################################################################
 
 #networkmanager issue
@@ -26,95 +29,60 @@ installed_dir=$(dirname $(readlink -f $(basename `pwd`)))
 
 ##################################################################################################################
 
+# set DEBUG to true to be able to analyze the scripts file per file
+export DEBUG=false
+
+##################################################################################################################
+
+if [ "$DEBUG" = true ]; then
+    echo
+    echo "------------------------------------------------------------"
+    echo "Running $(basename $0)"
+    echo "------------------------------------------------------------"
+    echo
+    read -n 1 -s -r -p "Debug mode is on. Press any key to continue..."
+    echo
+fi
+
+##################################################################################################################
+
 echo
 tput setaf 3
 echo "################################################################"
-echo "################### Intervention first"
+echo "Do you want to install Chadwm on your system?"
+echo "Answer with Y/y or N/n"
 echo "################################################################"
 tput sgr0
 echo
 
+read response
+
+if [[ "$response" == [yY] ]]; then
+    touch /tmp/install-chadwm
+fi
+
+# only for ArchBang
 sh 410-intervention*
 
-echo
-tput setaf 3
-echo "################################################################"
-echo "################### Intervention done"
-echo "################################################################"
-tput sgr0
-echo
-
-echo
-tput setaf 3
-echo "################################################################"
-echo "################### Installing velo/velow - development software"
-echo "################################################################"
-tput sgr0
-echo
-
-# when NOT on a wayland session
-if [ ! -d /usr/share/wayland-sessions/ ]; then
-    if [ -f /usr/local/bin/velo ]; then
-        velo
-    fi
+# Check if arcolinux-repos etc are there
+if ! pacman -Qi arcolinux-keyring &> /dev/null; then
+    sh arch/get-the-keys-and-repos.sh
+    sudo pacman -Syyu
 fi
 
-# when on a wayland session
-if [ -d /usr/share/wayland-sessions/ ]; then
-    if [ -f /usr/local/bin/velow ]; then
-        velow
-    fi
-fi
-
-
-if [ ! -d /usr/share/wayland-sessions/ ]; then
-
-    echo
-    tput setaf 3
-    echo "################################################################"
-    echo "Do you want to install Chadwm on your system?"
-    echo "Answer with Y/y or N/n"
-    echo "################################################################"
-    tput sgr0
-    echo
-
-    read response
-
-    if [[ "$response" == [yY] ]]; then
-        touch /tmp/install-chadwm
-    fi
-
-fi
+sudo pacman -S sublime-text-4 --noconfirm --needed
+sudo pacman -S ripgrep --noconfirm --needed
+sudo pacman -S meld --noconfirm --needed
 
 echo
 tput setaf 3
 echo "################################################################"
-echo "################### Pacman parallel downloads to 20"
+echo "################### Pacman parallel downloads to 21"
 echo "################################################################"
 tput sgr0
 echo
 
-FIND="ParallelDownloads = 8"
-REPLACE="ParallelDownloads = 20"
-sudo sed -i "s/$FIND/$REPLACE/g" /etc/pacman.conf
-
-FIND="#ParallelDownloads = 5"
-REPLACE="ParallelDownloads = 20"
-sudo sed -i "s/$FIND/$REPLACE/g" /etc/pacman.conf
-
-FIND="ParallelDownloads = 5"
-REPLACE="ParallelDownloads = 20"
-sudo sed -i "s/$FIND/$REPLACE/g" /etc/pacman.conf
-
-echo
-tput setaf 3
-echo "################################################################"
-echo "################### No neofetch by default"
-echo "################################################################"
-tput sgr0
-echo
-
-sed -i 's/^neofetch/#neofetch/' ~/.bashrc
+sudo sed -i 's/^#*ParallelDownloads = .*/ParallelDownloads = 21/' /etc/pacman.conf
 
 echo
 tput setaf 3
@@ -125,6 +93,20 @@ tput sgr0
 echo
 
 sudo pacman -Sy
+
+if [ -f /etc/dev-rel ]; then
+
+    if grep -q "arconet" /etc/dev-rel || grep -q "arcopro" /etc/dev-rel || grep -q "arcoplasma" /etc/dev-rel; then
+        echo
+        tput setaf 3
+        echo "################################################################"
+        echo "################### We are either on arconet, arcopro or arcoplasma"
+        echo "################################################################"
+        tput sgr0
+        echo
+        sh get-me-started
+    fi
+fi
 
 sh 400-remove-software*
 
@@ -175,6 +157,7 @@ sh 970-sierra*
 sh 970-biglinux*
 sh 970-rebornos*
 sh 970-archbang*
+sh 970-manjaro*
 
 #has to be last - they are all Arch
 sh 970-arch.sh

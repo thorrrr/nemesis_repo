@@ -22,31 +22,33 @@ installed_dir=$(dirname $(readlink -f $(basename `pwd`)))
 
 ##################################################################################################################
 
+if [ "$DEBUG" = true ]; then
+    echo
+    echo "------------------------------------------------------------"
+    echo "Running $(basename $0)"
+    echo "------------------------------------------------------------"
+    echo
+    read -n 1 -s -r -p "Debug mode is on. Press any key to continue..."
+    echo
+fi
+
+##################################################################################################################
+
 sudo pacman -Syyu --noconfirm
-
-echo
-tput setaf 3
-echo "################################################################"
-echo "################### Get my personal variety settings"
-echo "################################################################"
-tput sgr0
-echo
-
-sudo wget https://github.com/thorrrr/nemesis_repo/blob/main/Personal/settings/variety/variety.conf -O ~/.config/variety/variety.conf
-
-echo
-tput setaf 3
-echo "################################################################"
-echo "################### No neofetch by default"
-echo "################################################################"
-tput sgr0
-echo
-
-sed -i 's/^neofetch/#neofetch/' ~/.bashrc
 
 # when on Plasma
 
 if [ -f /usr/share/wayland-sessions/plasma.desktop ]; then
+
+  echo
+  tput setaf 3
+  echo "################################################################"
+  echo "################### Get my personal variety settings"
+  echo "################################################################"
+  tput sgr0
+  echo
+
+  sudo wget https://github.com/thorrrr/nemesis_repo/blob/main/Personal/settings/variety/variety.conf -O ~/.config/variety/variety.conf
 
   echo
   tput setaf 2
@@ -71,25 +73,25 @@ if [ -f /usr/share/wayland-sessions/plasma.desktop ]; then
   tput sgr0
   echo
 
-  sudo pacman -S --noconfirm --needed obs-studio
   # design for Thunar
   sudo pacman -S --noconfirm --needed arc-gtk-theme
-  sudo pacman -S --noconfirm --needed thunar
-  sudo pacman -S --noconfirm --needed thunar-volman
-  sudo pacman -S --noconfirm --needed thunar-archive-plugin
-  sudo pacman -S --noconfirm --needed meld
+  sudo pacman -S --noconfirm --needed arcolinux-plasma-theme-candy-beauty-arc-dark-git
+  sudo pacman -S --noconfirm --needed arcolinux-plasma-theme-candy-beauty-nordic-git
+  sudo pacman -S --noconfirm --needed arcolinux-plasma-theme-surfn-arc-dark-git
+  sudo pacman -S --noconfirm --needed arcolinux-plasma-theme-surfn-nordic-git
+  sudo pacman -S --noconfirm --needed discord
   sudo pacman -S --noconfirm --needed kio-admin
   sudo pacman -S --noconfirm --needed kwin-polonium
+  sudo pacman -S --noconfirm --needed meld
+  sudo pacman -S --noconfirm --needed pavucontrol
+  sudo pacman -S --noconfirm --needed python-pywal
   sudo pacman -S --noconfirm --needed ripgrep
   sudo pacman -S --noconfirm --needed sublime-text-4
-  sudo pacman -S --noconfirm --needed the_platinum_searcher-bin
   sudo pacman -S --noconfirm --needed telegram-desktop
-  sudo pacman -S --noconfirm --needed discord
-  sudo pacman -S --noconfirm --needed python-pywal
-  sudo pacman -S --noconfirm --needed arcolinux-plasma-theme-candy-beauty-nordic-git
-  sudo pacman -S --noconfirm --needed arcolinux-plasma-theme-surfn-nordic-git
-  sudo pacman -S --noconfirm --needed arcolinux-plasma-theme-candy-beauty-arc-dark-git
-  sudo pacman -S --noconfirm --needed arcolinux-plasma-theme-surfn-arc-dark-git
+  sudo pacman -S --noconfirm --needed the_platinum_searcher-bin
+  sudo pacman -S --noconfirm --needed thunar
+  sudo pacman -S --noconfirm --needed thunar-archive-plugin
+  sudo pacman -S --noconfirm --needed thunar-volman
 
   sudo pacman -S --noconfirm --needed arcolinux-plasma-keybindings-git
 
@@ -116,11 +118,10 @@ wobblywindowsEnabled=true' | sudo tee -a ~/.config/kwinrc
 
 fi
 
-
 echo
 tput setaf 6
-echo "################################################################"
-echo "################### Done"
-echo "################################################################"
+echo "######################################################"
+echo "###################  $(basename $0) done"
+echo "######################################################"
 tput sgr0
 echo
