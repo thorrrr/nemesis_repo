@@ -1,0 +1,21 @@
+# Ignore specific script versions if needed
+setup-git.sh
+up.sh
+
+# Build output
+/build/
+/dist/
+
+# Dependencies
+/node_modules/
+
+# Log files
+*.log
+
+# Environment files (if not already in global gitignore)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Any other project-specific files or directories to ignore
