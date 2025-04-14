@@ -22,6 +22,18 @@ installed_dir=$(dirname $(readlink -f $(basename `pwd`)))
 
 ##################################################################################################################
 
+if [ "$DEBUG" = true ]; then
+    echo
+    echo "------------------------------------------------------------"
+    echo "Running $(basename $0)"
+    echo "------------------------------------------------------------"
+    echo
+    read -n 1 -s -r -p "Debug mode is on. Press any key to continue..."
+    echo
+fi
+
+##################################################################################################################
+
 func_install() {
     if pacman -Qi $1 &> /dev/null; then
         tput setaf 2
@@ -55,23 +67,22 @@ func_install_chadwm() {
     alacritty
     archlinux-logout-git
     arcolinux-chadwm-git
-    arcolinux-paleofetch-git
-    arcolinux-powermenu-git
-    arcolinux-wallpapers-candy-git
-    arcolinux-wallpapers-git
+    #arcolinux-nlogout-git
+    #arcolinux-powermenu-git
+    arconet-xfce
     autorandr
     dash
     dmenu
     eww
     feh
+    gcc
     gvfs
     lolcat
     lxappearance
-    pa-applet-git
+    make
     picom
     polkit-gnome
-    rofi
-    rxvt-unicode
+    rofi-lbonn-wayland
     sxhkd
     thunar
     thunar-archive-plugin
@@ -86,6 +97,7 @@ func_install_chadwm() {
     xfce4-settings
     xfce4-taskmanager
     xfce4-terminal
+    xorg-xsetroot
     )
 
     count=0
@@ -97,94 +109,24 @@ func_install_chadwm() {
     done
 }
 
-# install chadwm on Sierra
 
-if [ -f /usr/local/bin/get-nemesis-on-sierra ]; then
+if [ -f /tmp/install-chadwm ]; then
 
     echo
     tput setaf 2
     echo "################################################################"
-    echo "################### We are on SIERRA"
+    echo "################### Let us install Chadwm"
     echo "################################################################"
     tput sgr0
     echo
 
     func_install_chadwm
-
-    echo
-    tput setaf 6
-    echo "################################################################"
-    echo "################### Done"
-    echo "################################################################"
-    tput sgr0
-    echo
-
 fi
 
-if grep -q "archcraft" /etc/os-release; then
-
-    echo
-    tput setaf 2
-    echo "################################################################"
-    echo "################### We are on Archcraft"
-    echo "################################################################"
-    tput sgr0
-    echo
-
-    func_install_chadwm
-
-    echo
-    tput setaf 6
-    echo "################################################################"
-    echo "################### Done"
-    echo "################################################################"
-    tput sgr0
-    echo
-
-fi
-
-# install chadwm on Area
-
-if [ -f /usr/local/bin/get-nemesis-on-area ]; then
-
-    echo
-    tput setaf 2
-    echo "################################################################"
-    echo "################### We are on Area"
-    echo "################################################################"
-    tput sgr0
-    echo
-
-    func_install_chadwm
-
-    echo
-    tput setaf 6
-    echo "################################################################"
-    echo "################### Done"
-    echo "################################################################"
-    tput sgr0
-    echo
-
-fi
-
-if grep -q 'NAME="Arch Linux"' /etc/os-release; then
-
-    echo
-    tput setaf 2
-    echo "################################################################"
-    echo "################### We are on Arch Linux"
-    echo "################################################################"
-    tput sgr0
-    echo
-
-    func_install_chadwm
-
-    echo
-    tput setaf 6
-    echo "################################################################"
-    echo "################### Done"
-    echo "################################################################"
-    tput sgr0
-    echo
-
-fi
+echo
+tput setaf 6
+echo "######################################################"
+echo "###################  $(basename $0) done"
+echo "######################################################"
+tput sgr0
+echo

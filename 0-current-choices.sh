@@ -46,6 +46,30 @@ fi
 
 ##################################################################################################################
 
+run_script() {
+    cd "Personal/settings/$1-chadwm/" || exit 1
+    sh ./1-all-in-one.sh
+    exit 1
+}
+if [ -f /etc/lsb-release ] && grep -q "MX 23.4" /etc/lsb-release; then
+    run_script "mxlinux"
+fi
+if grep -q "bunsenlabs" /etc/os-release; then run_script "bunsenlabs"; fi
+if grep -q "FreeBSD" /etc/os-release; then run_script "freebsd"; fi
+if grep -q "GhostBSD" /etc/os-release; then run_script "ghostbsd"; fi
+if grep -q "Debian" /etc/os-release; then run_script "debian"; fi
+if grep -q "Peppermint" /etc/os-release; then run_script "peppermint"; fi
+if grep -q "Pop!" /etc/os-release; then run_script "popos"; fi
+if grep -q "LMDE 6" /etc/os-release; then run_script "lmde6"; fi
+if grep -q "linuxmint" /etc/os-release; then run_script "mint"; fi
+if grep -q "AlmaLinux" /etc/os-release; then run_script "almalinux"; fi
+if grep -q "AnduinOS" /etc/os-release; then run_script "anduin"; fi
+if grep -q "ubuntu" /etc/os-release; then run_script "ubuntu"; fi
+if grep -q "void" /etc/os-release; then run_script "void"; fi
+if grep -q "Nobara" /etc/os-release; then run_script "nobara"; fi
+if grep -q "Fedora" /etc/os-release; then run_script "fedora"; fi
+if grep -q "Solus" /etc/os-release; then run_script "solus"; fi
+
 echo
 tput setaf 3
 echo "################################################################"
@@ -59,6 +83,34 @@ read response
 
 if [[ "$response" == [yY] ]]; then
     touch /tmp/install-chadwm
+fi
+
+if grep -q 'arcolinux_repo' /etc/pacman.conf && \
+   grep -q 'arcolinux_repo_3party' /etc/pacman.conf; then
+
+  echo
+  tput setaf 2
+  echo "################################################################"
+  echo "################ ArcoLinux repos are already in /etc/pacman.conf "
+  echo "################################################################"
+  tput sgr0
+  echo
+  else
+  echo
+  tput setaf 2
+  echo "################################################################"
+  echo "################### Getting the keys and mirrors for ArcoLinux"
+  echo "################################################################"
+  tput sgr0
+  echo
+  sh arch/get-the-keys-and-repos.sh
+  sudo pacman -Sy
+fi
+
+# only for arcoinstall
+if grep -q 'arcoinstall' /etc/pacman.conf ;then
+  sudo cp /etc/pacman.conf /etc/pacman.conf.backup
+  sudo wget https://raw.githubusercontent.com/arconetpro/arconet-iso/refs/heads/main/archiso/airootfs/etc/pacman.conf -O /etc/pacman.conf
 fi
 
 # only for ArchBang
@@ -77,12 +129,12 @@ sudo pacman -S meld --noconfirm --needed
 echo
 tput setaf 3
 echo "################################################################"
-echo "################### Pacman parallel downloads to 21"
+echo "################### Pacman parallel downloads to 22"
 echo "################################################################"
 tput sgr0
 echo
 
-sudo sed -i 's/^#*ParallelDownloads = .*/ParallelDownloads = 21/' /etc/pacman.conf
+sudo sed -i 's/^#*ParallelDownloads = .*/ParallelDownloads = 22/' /etc/pacman.conf
 
 echo
 tput setaf 3
@@ -100,7 +152,7 @@ if [ -f /etc/dev-rel ]; then
         echo
         tput setaf 3
         echo "################################################################"
-        echo "################### We are either on arconet, arcopro or arcoplasma"
+        echo "######## We are either on arconet, arcopro or arcoplasma"
         echo "################################################################"
         tput sgr0
         echo
@@ -116,7 +168,7 @@ sh 120-install-core-software*
 sh 150-install-chadwm*
 sh 160-install-bluetooth*
 sh 170-install-cups*
-sh 180-install-test-software*
+#sh 180-install-test-software*
 
 sh 200-software-AUR-repo*
 sh 500-*
