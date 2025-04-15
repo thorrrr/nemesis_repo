@@ -165,9 +165,9 @@ sh 400-remove-software*
 sh 100-install-nemesis-software*
 sh 110-install-arcolinux-software*
 sh 120-install-core-software*
-sh 150-install-chadwm*
+sh 150-install-chadwm.sh*
 sh 160-install-bluetooth*
-sh 170-install-cups*
+sh 170-install-cups*s
 #sh 180-install-test-software*
 
 sh 200-software-AUR-repo*
