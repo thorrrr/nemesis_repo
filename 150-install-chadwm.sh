@@ -2,27 +2,10 @@
 #set -e
 ##################################################################################################################
 # Author    : Dale Holden
-# Script    : Install ChadWM + dependencies
+# Script    : Install ChadWM + full app stack (clean version)
 ##################################################################################################################
 
-# Set DRY_RUN=true for testing what would be installed
-DRY_RUN=true
-
-installed_dir=$(dirname "$(readlink -f "$(basename "$(pwd)")")")
-
-##################################################################################################################
-# DEBUG MODE
-##################################################################################################################
-
-if [[ "$DEBUG" = true ]]; then
-    echo
-    echo "------------------------------------------------------------"
-    echo "Running $(basename "$0")"
-    echo "------------------------------------------------------------"
-    echo
-    read -n 1 -s -r -p "Debug mode is on. Press any key to continue..."
-    echo
-fi
+DRY_RUN=false  # Set to true for testing only
 
 ##################################################################################################################
 # Functions
@@ -30,49 +13,33 @@ fi
 
 func_install() {
     if pacman -Qi "$1" &>/dev/null; then
-        tput setaf 2
-        echo "✔ $1 is already installed"
-        tput sgr0
+        tput setaf 2; echo "✔ $1 is already installed"; tput sgr0
     else
-        tput setaf 3
-        echo "➕ Installing: $1"
-        tput sgr0
-        if [[ "$DRY_RUN" = false ]]; then
-            sudo pacman -S --noconfirm --needed "$1"
-        fi
+        tput setaf 3; echo "➕ Installing: $1"; tput sgr0
+        [[ "$DRY_RUN" = false ]] && sudo pacman -S --noconfirm --needed "$1"
     fi
 }
 
 func_install_aur() {
     if pacman -Qm "$1" &>/dev/null; then
-        tput setaf 2
-        echo "✔ AUR: $1 is already installed"
-        tput sgr0
+        tput setaf 2; echo "✔ AUR: $1 is already installed"; tput sgr0
     else
-        tput setaf 5
-        echo "➕ Installing AUR package: $1"
-        tput sgr0
-        if [[ "$DRY_RUN" = false ]]; then
-            paru -S --noconfirm --needed "$1"
-        fi
+        tput setaf 5; echo "➕ Installing AUR package: $1"; tput sgr0
+        [[ "$DRY_RUN" = false ]] && paru -S --noconfirm --needed "$1"
     fi
 }
 
-func_install_chadwm() {
-    echo
-    tput setaf 2
+func_install_apps() {
+    echo; tput setaf 2
     echo "################################################################"
-    echo "################### Installing ChadWM + Components"
+    echo "################### Installing core apps"
     echo "################################################################"
-    tput sgr0
-    echo
+    tput sgr0; echo
 
-    list=(
+    local list=(
         a-candy-beauty-icon-theme-git
         alacritty
         archlinux-logout-git
-        arcolinux-chadwm-git
-        arcolinux-chadwm-pacman-hook-git
         arcolinux-nlogout-git
         arcolinux-powermenu-git
         arcolinux-wallpapers-candy-git
@@ -118,7 +85,7 @@ func_install_chadwm() {
         kitty
     )
 
-    aur_list=(
+    local aur_list=(
         brave-beta-bin
         zen-browser-bin
         logseq-desktop-bin
@@ -127,43 +94,71 @@ func_install_chadwm() {
         syncthing
     )
 
-    count=1
-    for name in "${list[@]}"; do
-        echo "[$count/${#list[@]}] $name"
-        func_install "$name"
+    local count=1
+    for pkg in "${list[@]}"; do
+        echo "[$count/${#list[@]}] $pkg"
+        func_install "$pkg"
         ((count++))
     done
 
-    echo
-    tput setaf 6
-    echo "🔽 AUR packages (via paru)"
+    echo; tput setaf 6
+    echo "🔽 Installing AUR packages (via paru)"
     tput sgr0
+
     for pkg in "${aur_list[@]}"; do
         func_install_aur "$pkg"
     done
 }
 
+func_clone_and_build_chadwm() {
+    echo; tput setaf 4
+    echo "🌐 Cloning ChadWM from GitHub and building..."
+    tput sgr0
+
+    if [[ "$DRY_RUN" = false ]]; then
+        rm -rf ~/chadwm-laptop
+        git clone https://github.com/thorrrr/chadwm-laptop ~/chadwm-laptop || {
+            echo "❌ Failed to clone ChadWM repo"
+            exit 1
+        }
+    else
+        echo "🔎 DRY RUN: Skipping clone. Checking if repo exists..."
+        [[ -d ~/chadwm-laptop ]] && echo "✔ Repo exists" || echo "❌ Repo not found"
+    fi
+
+    cd ~/chadwm-laptop/scripts || {
+        echo "❌ Script folder not found"
+        exit 1
+    }
+
+    chmod +x install-chadwm.sh
+    [[ "$DRY_RUN" = false ]] && ./install-chadwm.sh || echo "🔎 DRY RUN: Would run install-chadwm.sh"
+}
+
 ##################################################################################################################
-# Trigger installation if marker file exists
+# Run
 ##################################################################################################################
 
-if [[ -f /tmp/install-chadwm ]]; then
-    tput setaf 2
-    echo
-    echo "################################################################"
-    echo "### Proceeding with ChadWM installation"
-    echo "################################################################"
-    tput sgr0
-    func_install_chadwm
-else
-    tput setaf 1
-    echo "❌ Skipping ChadWM install — /tmp/install-chadwm marker not found."
-    tput sgr0
-fi
+tput setaf 2
+echo
+echo "################################################################"
+echo "### Running 150-install-chadwm.sh"
+echo "################################################################"
+tput sgr0
+
+func_install_apps
+func_clone_and_build_chadwm
+
+echo; tput setaf 6
+echo "🔎 Verifying key tools:"
+for bin in ghostty logseq brave-browser btop; do
+    command -v "$bin" &>/dev/null && echo "✔ $bin found" || echo "❌ $bin missing"
+done
+tput sgr0
 
 echo
 tput setaf 6
 echo "######################################################"
-echo "################### $(basename "$0") complete"
+echo "################### Script complete"
 echo "######################################################"
 tput sgr0
