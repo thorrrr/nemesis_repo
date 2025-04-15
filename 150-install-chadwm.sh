@@ -4,13 +4,9 @@
 # Author    : Dale Holden
 # Script    : Install ChadWM + dependencies
 ##################################################################################################################
-#
-#   DO NOT JUST RUN THIS. EXAMINE AND JUDGE. RUN AT YOUR OWN RISK.
-#
-##################################################################################################################
 
-# tput setaf colors for reference
-# 0 = black, 1 = red, 2 = green, 3 = yellow, 4 = dark blue, 5 = purple, 6 = cyan, 7 = gray
+# Set DRY_RUN=true for testing what would be installed
+DRY_RUN=true
 
 installed_dir=$(dirname "$(readlink -f "$(basename "$(pwd)")")")
 
@@ -35,17 +31,30 @@ fi
 func_install() {
     if pacman -Qi "$1" &>/dev/null; then
         tput setaf 2
-        echo "###############################################################################"
-        echo "################## The package \"$1\" is already installed"
-        echo "###############################################################################"
+        echo "✔ $1 is already installed"
         tput sgr0
     else
         tput setaf 3
-        echo "###############################################################################"
-        echo "################## Installing package \"$1\""
-        echo "###############################################################################"
+        echo "➕ Installing: $1"
         tput sgr0
-        sudo pacman -S --noconfirm --needed "$1"
+        if [[ "$DRY_RUN" = false ]]; then
+            sudo pacman -S --noconfirm --needed "$1"
+        fi
+    fi
+}
+
+func_install_aur() {
+    if pacman -Qm "$1" &>/dev/null; then
+        tput setaf 2
+        echo "✔ AUR: $1 is already installed"
+        tput sgr0
+    else
+        tput setaf 5
+        echo "➕ Installing AUR package: $1"
+        tput sgr0
+        if [[ "$DRY_RUN" = false ]]; then
+            paru -S --noconfirm --needed "$1"
+        fi
     fi
 }
 
@@ -75,10 +84,12 @@ func_install_chadwm() {
         eww
         feh
         gcc
+        ghostty
         gvfs
         lolcat
         lxappearance
         make
+        mpv
         picom
         polkit-gnome
         rofi-lbonn-wayland
@@ -89,6 +100,7 @@ func_install_chadwm() {
         ttf-hack
         ttf-jetbrains-mono-nerd
         ttf-meslo-nerd-font-powerlevel10k
+        variety
         volumeicon
         xfce4-notifyd
         xfce4-power-manager
@@ -97,15 +109,37 @@ func_install_chadwm() {
         xfce4-taskmanager
         xfce4-terminal
         xorg-xsetroot
+        sublime-text-4
+        bitwarden
+        nextcloud
+        espanso
+        tmux
+        btop
+        kitty
+    )
+
+    aur_list=(
+        brave-beta-bin
+        zen-browser-bin
+        logseq-desktop-bin
+        stacer-bin
+        yay-git
+        syncthing
     )
 
     count=1
     for name in "${list[@]}"; do
-        tput setaf 3
-        echo "[$count/${#list[@]}] Installing: $name"
-        tput sgr0
+        echo "[$count/${#list[@]}] $name"
         func_install "$name"
         ((count++))
+    done
+
+    echo
+    tput setaf 6
+    echo "🔽 AUR packages (via paru)"
+    tput sgr0
+    for pkg in "${aur_list[@]}"; do
+        func_install_aur "$pkg"
     done
 }
 
