@@ -29,7 +29,7 @@ tput setaf 3
 tput sgr0
 
 echo "Installing required packages from official repos..."
-sudo pacman -S --noconfirm \
+sudo pacman -S --noconfirm --needed \
   kitty rofi sxhkd neofetch btop fastfetch \
   thunar file-roller gvfs gvfs-smb \
   flameshot mpv picom lxappearance \
@@ -40,6 +40,7 @@ sudo pacman -S --noconfirm \
   sddm
 
 # Enable SDDM
+echo "Enabling SDDM..."
 sudo systemctl enable sddm.service
 
 # Installing AUR apps using yay
@@ -47,12 +48,15 @@ if ! command -v yay &>/dev/null; then
   echo "Installing yay..."
   git clone https://aur.archlinux.org/yay-git.git /tmp/yay-git
   cd /tmp/yay-git || exit
-  makepkg -si --noconfirm
+  makepkg -si --noconfirm --needed
   cd ~
 fi
 
+# Ensure yay won’t ask for password during batch install
+export MAKEPKG="makepkg --skippgpcheck"
+
 echo "Installing AUR apps via yay..."
-yay -S --noconfirm \
+yay -S --noconfirm --needed \
   brave-beta-bin \
   logseq-desktop-bin \
   stacer-bin \
@@ -65,12 +69,20 @@ mkdir -p ~/.config
 rm -rf ~/.config/chadwm
 
 echo "Cloning ChadWM config from Dale’s GitHub..."
-git clone https://github.com/thorrrr/dale-chadwn.git ~/.config/chadwm
+git clone --depth=1 https://github.com/thorrrr/dale-chadwn.git ~/.config/chadwm
 
-# Build ChadWM
-cd ~/.config/chadwm || exit
-chmod +x install.sh
-./install.sh
+# Build ChadWM if install.sh exists
+if [ -f ~/.config/chadwm/install.sh ]; then
+  cd ~/.config/chadwm || exit
+  chmod +x install.sh
+  ./install.sh
+elif [ -f ~/.config/chadwm/Makefile ]; then
+  echo "Makefile found. Building with make..."
+  cd ~/.config/chadwm || exit
+  make && sudo make install
+else
+  echo "No install.sh or Makefile found. Skipping ChadWM build."
+fi
 
 # Set up XSession entry for ChadWM (for SDDM)
 echo "Creating ChadWM desktop entry..."
@@ -80,7 +92,7 @@ Comment=ChadWM window manager session
 Exec=/usr/local/bin/chadwm-start
 TryExec=/usr/local/bin/chadwm-start
 Type=Application
-X-SDM-DesktopName=ChadWM
+X-SDDM-DesktopName=ChadWM
 DesktopNames=ChadWM" | sudo tee /usr/share/xsessions/chadwm.desktop > /dev/null
 
 # Create launcher script for session startup
@@ -88,7 +100,12 @@ echo "#!/bin/bash
 exec ~/.config/chadwm/autostart.sh" | sudo tee /usr/local/bin/chadwm-start > /dev/null
 sudo chmod +x /usr/local/bin/chadwm-start
 
-# Fix permissions on autostart script if needed
+# Fallback: create a basic autostart.sh if missing
+if [ ! -f ~/.config/chadwm/autostart.sh ]; then
+  echo "#!/bin/bash
+exec chadwm" > ~/.config/chadwm/autostart.sh
+fi
+
 chmod +x ~/.config/chadwm/autostart.sh
 
 # Final message
