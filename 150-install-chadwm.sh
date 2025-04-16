@@ -69,19 +69,17 @@ mkdir -p ~/.config
 rm -rf ~/.config/chadwm
 
 echo "Cloning ChadWM config from Dale’s GitHub..."
-git clone --depth=1 https://github.com/thorrrr/dale-chadwn.git ~/.config/chadwm
+git clone --depth=1 https://github.com/thorrrr/dale-chadwn.git /tmp/chadwm-temp
+mv /tmp/chadwm-temp/chadwm ~/.config/chadwm
+rm -rf /tmp/chadwm-temp
 
-# Build ChadWM if install.sh exists
-if [ -f ~/.config/chadwm/install.sh ]; then
+# Build ChadWM if Makefile exists
+if [ -f ~/.config/chadwm/Makefile ]; then
+  echo "Building ChadWM with make..."
   cd ~/.config/chadwm || exit
-  chmod +x install.sh
-  ./install.sh
-elif [ -f ~/.config/chadwm/Makefile ]; then
-  echo "Makefile found. Building with make..."
-  cd ~/.config/chadwm || exit
-  make && sudo make install
+  make && sudo make clean install
 else
-  echo "No install.sh or Makefile found. Skipping ChadWM build."
+  echo "Makefile not found in ~/.config/chadwm. Build failed."
 fi
 
 # Set up XSession entry for ChadWM (for SDDM)
@@ -103,6 +101,8 @@ sudo chmod +x /usr/local/bin/chadwm-start
 # Fallback: create a basic autostart.sh if missing
 if [ ! -f ~/.config/chadwm/autostart.sh ]; then
   echo "#!/bin/bash
+sxhkd &
+bars &
 exec chadwm" > ~/.config/chadwm/autostart.sh
 fi
 
