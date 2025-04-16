@@ -1,119 +1,103 @@
 #!/bin/bash
 #set -e
+##################################################################################################################
+# Author    : Dale Holden
+##################################################################################################################
+#
+#   DO NOT JUST RUN THIS. EXAMINE AND JUDGE. RUN AT YOUR OWN RISK.
+#
+##################################################################################################################
 
-DRY_RUN=false  # Set to true for testing only
+if [ "$DEBUG" = true ]; then
+    echo
+    echo "------------------------------------------------------------"
+    echo "Running $(basename $0)"
+    echo "------------------------------------------------------------"
+    echo
+    read -n 1 -s -r -p "Debug mode is on. Press any key to continue..."
+    echo
+fi
 
-# Clone and install ChadWM from your repo
-func_clone_and_build_chadwm() {
-    local target_dir="$HOME/.config/chadwm-git"
+##################################################################################################################
 
-    echo "🌐 Cloning ChadWM..."
-    [[ "$DRY_RUN" = false ]] && {
-        rm -rf "$target_dir"
-        git clone --depth=1 git@github.com:thorrrr/dale-chadwn.git "$target_dir" || {
-            echo "❌ Failed to clone ChadWM repo"
-            exit 1
-        }
+echo
 
-        if [[ -x "$target_dir/scripts/install-chadwm.sh" ]]; then
-            chmod +x "$target_dir/scripts/install-chadwm.sh"
-            "$target_dir/scripts/install-chadwm.sh"
-        else
-            echo "⚠️ No install-chadwm.sh found inside $target_dir/scripts/"
-        fi
-    }
-}
+tput setaf 3
+  echo "################################################################"
+  echo "################### Installing ChadWM Setup #####################"
+  echo "################################################################"
+tput sgr0
 
-# Create autostart script if missing
-func_create_autostart_script() {
-    local script="$HOME/.config/chadwm/autostart.sh"
+echo "Installing required packages from official repos..."
+sudo pacman -S --noconfirm \
+  kitty rofi sxhkd neofetch btop fastfetch \
+  thunar file-roller gvfs gvfs-smb \
+  flameshot mpv picom lxappearance \
+  volumeicon pavucontrol feh nitrogen \
+  arandr unzip unrar zip p7zip \
+  bitwarden nextcloud espanso \
+  xorg xorg-xinit xorg-xrandr xorg-xsetroot \
+  sddm
 
-    if [[ ! -f "$script" ]]; then
-        mkdir -p "$(dirname "$script")"
-        cat <<EOF > "$script"
-#!/bin/bash
-xsetroot -cursor_name left_ptr &
-feh --bg-scale ~/Pictures/wallpaper/default.jpg &
-picom --experimental-backends &
-sxhkd &
-exec chadwm
-EOF
-        chmod +x "$script"
-        echo "✅ Created autostart script: $script"
-    else
-        echo "✔ Autostart script already exists."
-    fi
-}
+# Enable SDDM
+sudo systemctl enable sddm.service
 
-# Create xsession .desktop file for SDDM
-func_create_xsession_entry() {
-    local session_file="/usr/share/xsessions/chadwm.desktop"
-    local launcher="/usr/local/bin/chadwm-start"
+# Installing AUR apps using yay
+if ! command -v yay &>/dev/null; then
+  echo "Installing yay..."
+  git clone https://aur.archlinux.org/yay-git.git /tmp/yay-git
+  cd /tmp/yay-git || exit
+  makepkg -si --noconfirm
+  cd ~
+fi
 
-    if [[ "$DRY_RUN" = false ]]; then
-        sudo tee "$session_file" > /dev/null <<EOF
-[Desktop Entry]
+echo "Installing AUR apps via yay..."
+yay -S --noconfirm \
+  brave-beta-bin \
+  logseq-desktop-bin \
+  stacer-bin \
+  sublime-text-4 \
+  gitfiend \
+  zen-browser-bin 
+
+# Clone Dale’s custom ChadWM config
+mkdir -p ~/.config
+rm -rf ~/.config/chadwm-git
+
+echo "Cloning ChadWM config from Dale’s GitHub..."
+git clone git@github.com:thorrrr/dale-chadwn.git ~/.config/chadwm-git
+
+# Build ChadWM
+cd ~/.config/chadwm-git || exit
+chmod +x install.sh
+./install.sh
+
+# Set up XSession entry for ChadWM (for SDDM)
+echo "Creating ChadWM desktop entry..."
+echo "[Desktop Entry]
 Name=ChadWM
-Comment=ChadWM Session
-Exec=$launcher
-TryExec=$launcher
+Comment=ChadWM window manager session
+Exec=/usr/local/bin/chadwm-start
+TryExec=/usr/local/bin/chadwm-start
 Type=Application
 X-LightDM-DesktopName=ChadWM
-DesktopNames=ChadWM
-EOF
-        sudo chmod 644 "$session_file"
-        echo "✅ SDDM session file created at $session_file"
-    fi
-}
+DesktopNames=ChadWM" | sudo tee /usr/share/xsessions/chadwm.desktop > /dev/null
 
-# Create executable start script for SDDM
-func_create_session_launcher() {
-    local launcher="/usr/local/bin/chadwm-start"
+# Create launcher script for session startup
+echo "#!/bin/bash
+exec ~/.config/chadwm-git/autostart.sh" | sudo tee /usr/local/bin/chadwm-start > /dev/null
+sudo chmod +x /usr/local/bin/chadwm-start
 
-    if [[ "$DRY_RUN" = false ]]; then
-        sudo tee "$launcher" > /dev/null <<EOF
-#!/bin/bash
-exec \$HOME/.config/chadwm/autostart.sh
-EOF
-        sudo chmod +x "$launcher"
-        echo "✅ Launcher script created: $launcher"
-    fi
-}
+# Fix permissions on autostart script if needed
+chmod +x ~/.config/chadwm-git/autostart.sh
 
-# Install required apps
-func_install_apps() {
-    local pkgs=(
-        alacritty sxhkd feh picom dmenu rofi-lbonn-wayland
-        thunar thunar-volman thunar-archive-plugin
-        gvfs lxappearance xfce4-notifyd xfce4-power-manager
-        xfce4-screenshooter ttf-hack ttf-jetbrains-mono-nerd
-        ttf-meslo-nerd-font-powerlevel10k xorg-xsetroot
-        volumeicon polkit-gnome
-    )
-
-    echo "📦 Installing ChadWM-related apps..."
-    for pkg in "${pkgs[@]}"; do
-        sudo pacman -S --noconfirm --needed "$pkg"
-    done
-}
-
-# --- Main Execution ---
+# Final message
 echo
+
 tput setaf 2
-echo "#######################################"
-echo "### Running ChadWM Full Setup Script"
-echo "#######################################"
+  echo "################################################################"
+  echo "################### ChadWM Setup Complete #######################"
+  echo "################################################################"
 tput sgr0
-echo
 
-func_install_apps
-func_clone_and_build_chadwm
-func_create_autostart_script
-func_create_session_launcher
-func_create_xsession_entry
-
-echo
-tput setaf 6
-echo "✅ ChadWM fully installed and registered with SDDM."
-echo "➡️  Reboot and choose 'ChadWM' from the SDDM session dropdown."
-tput sgr0
+echo "Reboot your system and select 'ChadWM' from the SDDM login menu."
