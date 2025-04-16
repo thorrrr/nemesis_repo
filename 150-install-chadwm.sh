@@ -65,7 +65,7 @@ mkdir -p ~/.config
 rm -rf ~/.config/chadwm-git
 
 echo "Cloning ChadWM config from Dale’s GitHub..."
-git clone git@github.com:thorrrr/dale-chadwn.git ~/.config/chadwm-git
+git clone https://github.com/thorrrr/dale-chadwn.git ~/.config/chadwm
 
 # Build ChadWM
 cd ~/.config/chadwm-git || exit
@@ -85,11 +85,12 @@ DesktopNames=ChadWM" | sudo tee /usr/share/xsessions/chadwm.desktop > /dev/null
 
 # Create launcher script for session startup
 echo "#!/bin/bash
-exec ~/.config/chadwm-git/autostart.sh" | sudo tee /usr/local/bin/chadwm-start > /dev/null
+exec ~/.config/chadwm/autostart.sh" | sudo tee /usr/local/bin/chadwm-start > /dev/null
 sudo chmod +x /usr/local/bin/chadwm-start
 
 # Fix permissions on autostart script if needed
-chmod +x ~/.config/chadwm-git/autostart.sh
+chmod +x ~/.config/chadwm/autostart.sh
+
 
 # Final message
 echo
