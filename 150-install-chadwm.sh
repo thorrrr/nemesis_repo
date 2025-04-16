@@ -60,7 +60,7 @@ echo "################################################################"
 tput sgr0
 echo
 
-# Core required packages - similar to Erik's but including yours
+# Core required packages
 list=(
     alacritty
     arandr
@@ -109,9 +109,9 @@ for name in "${list[@]}" ; do
     func_install $name
 done
 
-# Enable SDDM
+# Enable SDDM without asking for password
 echo "Enabling SDDM service..."
-sudo systemctl enable sddm.service
+sudo --nopasswd systemctl enable sddm.service
 
 # Install yay if not installed
 if ! command -v yay &>/dev/null; then
@@ -126,45 +126,58 @@ fi
 echo "Cleaning up existing chadwm installation..."
 rm -rf ~/.config/chadwm
 
-# Clone your arco-chadwm config instead (which has the correct structure)
-echo "Setting up ChadWM from your arco-chadwm repository..."
+# Check if arco-chadwm directory exists locally
 if [ -d ~/.config/arco-chadwm ]; then
-    # If arco-chadwm exists, copy it to chadwm
+    echo "Using existing arco-chadwm as base..."
     cp -r ~/.config/arco-chadwm ~/.config/chadwm
-    echo "Using existing arco-chadwm as base for chadwm installation"
+    echo "Copied arco-chadwm to chadwm"
 else
-    # Else, use direct clone with proper structure
-    git clone --depth=1 https://github.com/thorrrr/arco-chadwm.git ~/.config/chadwm
-    echo "Cloned arco-chadwm repository"
+    # Use the existing dale-chadwn folder if it's already cloned
+    if [ -d ~/.config/dale-chadwn ]; then
+        echo "Using existing dale-chadwn folder..."
+        cp -r ~/.config/dale-chadwn ~/.config/chadwm
+    else
+        # Clone the edu-chadwm-git package files instead from AUR
+        # This avoids GitHub authentication issues
+        echo "Setting up ChadWM from edu-chadwm-git package..."
+        yay -S --noconfirm edu-chadwm-git
+        
+        # Copy the installed files to your config directory
+        echo "Copying installed files to ~/.config/chadwm..."
+        mkdir -p ~/.config/chadwm
+        cp -r /usr/share/edu-chadwm/* ~/.config/chadwm/
+    fi
 fi
 
-# Make sure we're in the right directory with the source code
+# Try to locate the build directory
 if [ -d ~/.config/chadwm/chadwm ]; then
     cd ~/.config/chadwm/chadwm || exit 1
     echo "Building ChadWM from ~/.config/chadwm/chadwm..."
     make clean
-    sudo make clean install
-elif [ -d ~/.config/chadwm ]; then
-    # Try to find the build directory
-    if [ -f ~/.config/chadwm/Makefile ]; then
-        cd ~/.config/chadwm || exit 1
-        echo "Building ChadWM from ~/.config/chadwm..."
+    sudo --nopasswd make clean install
+elif [ -f ~/.config/chadwm/Makefile ]; then
+    cd ~/.config/chadwm || exit 1
+    echo "Building ChadWM from ~/.config/chadwm..."
+    make clean
+    sudo --nopasswd make clean install
+else
+    echo "Finding build directory..."
+    BUILD_DIR=$(find ~/.config/chadwm -name "Makefile" -type f | head -n 1)
+    if [ ! -z "$BUILD_DIR" ]; then
+        BUILD_DIR=$(dirname "$BUILD_DIR")
+        echo "Found build directory at: $BUILD_DIR"
+        cd "$BUILD_DIR" || exit 1
         make clean
-        sudo make clean install
+        sudo --nopasswd make clean install
     else
         echo "Error: Cannot find chadwm build directory with Makefile."
-        echo "Current directory structure:"
-        find ~/.config/chadwm -type f -name "Makefile" | sort
-        exit 1
+        echo "Will try to use the system-installed chadwm binary instead."
     fi
-else
-    echo "Error: ChadWM repository not found or failed to clone."
-    exit 1
 fi
 
 # Create SDDM session entry
 echo "Creating ChadWM desktop session entry..."
-sudo tee /usr/share/xsessions/chadwm.desktop >/dev/null <<EOF
+cat > /tmp/chadwm.desktop <<EOF
 [Desktop Entry]
 Name=ChadWM
 Comment=ChadWM window manager session
@@ -173,23 +186,23 @@ TryExec=/usr/local/bin/chadwm-start
 Type=Application
 DesktopNames=ChadWM
 EOF
+sudo --nopasswd cp /tmp/chadwm.desktop /usr/share/xsessions/chadwm.desktop
 
 # Create the chadwm launch script
 echo "Creating /usr/local/bin/chadwm-start..."
-sudo tee /usr/local/bin/chadwm-start >/dev/null <<EOF
+cat > /tmp/chadwm-start <<EOF
 #!/bin/bash
 exec ~/.config/chadwm/autostart.sh
 EOF
-
-sudo chmod +x /usr/local/bin/chadwm-start
+sudo --nopasswd cp /tmp/chadwm-start /usr/local/bin/chadwm-start
+sudo --nopasswd chmod +x /usr/local/bin/chadwm-start
 
 # Make sure autostart is executable
 if [ -f ~/.config/chadwm/autostart.sh ]; then
     chmod +x ~/.config/chadwm/autostart.sh
     echo "Made autostart.sh executable."
 else
-    echo "Warning: autostart.sh not found."
-    # Try to find the autostart script
+    echo "Looking for autostart script..."
     AUTOSTART=$(find ~/.config/chadwm -name "autostart.sh" | head -n 1)
     if [ ! -z "$AUTOSTART" ]; then
         echo "Found autostart script at: $AUTOSTART"
@@ -200,7 +213,37 @@ else
             echo "Created symlink to autostart.sh"
         fi
     else
-        echo "No autostart.sh found in chadwm directories. Please create one."
+        echo "No autostart.sh found. Creating minimal autostart script..."
+        mkdir -p ~/.config/chadwm
+        cat > ~/.config/chadwm/autostart.sh <<EOF
+#!/bin/bash
+# Default autostart script for ChadWM
+
+# Set wallpaper
+feh --bg-fill ~/.config/chadwm/wallpaper/wall.png &
+
+# Start compositor
+picom &
+
+# Start status bar
+~/.config/chadwm/scripts/bar.sh &
+
+# Start notification daemon
+/usr/lib/xfce4/notifyd/xfce4-notifyd &
+
+# Start volume icon
+volumeicon &
+
+# Start polkit agent
+/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
+
+# Start xfce4-power-manager
+xfce4-power-manager &
+
+# Start window manager
+exec chadwm
+EOF
+        chmod +x ~/.config/chadwm/autostart.sh
     fi
 fi
 
