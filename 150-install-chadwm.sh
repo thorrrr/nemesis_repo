@@ -58,17 +58,17 @@ yay -S --noconfirm \
   stacer-bin \
   sublime-text-4 \
   gitfiend \
-  zen-browser-bin 
+  zen-browser-bin
 
 # Clone Dale’s custom ChadWM config
 mkdir -p ~/.config
-rm -rf ~/.config/chadwm-git
+rm -rf ~/.config/chadwm
 
 echo "Cloning ChadWM config from Dale’s GitHub..."
 git clone https://github.com/thorrrr/dale-chadwn.git ~/.config/chadwm
 
 # Build ChadWM
-cd ~/.config/chadwm-git || exit
+cd ~/.config/chadwm || exit
 chmod +x install.sh
 ./install.sh
 
@@ -80,7 +80,7 @@ Comment=ChadWM window manager session
 Exec=/usr/local/bin/chadwm-start
 TryExec=/usr/local/bin/chadwm-start
 Type=Application
-X-LightDM-DesktopName=ChadWM
+X-SDM-DesktopName=ChadWM
 DesktopNames=ChadWM" | sudo tee /usr/share/xsessions/chadwm.desktop > /dev/null
 
 # Create launcher script for session startup
@@ -90,7 +90,6 @@ sudo chmod +x /usr/local/bin/chadwm-start
 
 # Fix permissions on autostart script if needed
 chmod +x ~/.config/chadwm/autostart.sh
-
 
 # Final message
 echo
