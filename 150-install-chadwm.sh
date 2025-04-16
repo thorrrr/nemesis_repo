@@ -2,10 +2,7 @@
 #set -e
 ##################################################################################################################
 # Author    : Dale Holden
-##################################################################################################################
-#
-#   DO NOT JUST RUN THIS. EXAMINE AND JUDGE. RUN AT YOUR OWN RISK.
-#
+# Purpose   : Installs ChadWM properly with session setup and build process
 ##################################################################################################################
 
 if [ "$DEBUG" = true ]; then
@@ -18,103 +15,97 @@ if [ "$DEBUG" = true ]; then
     echo
 fi
 
-##################################################################################################################
-
+echo
+tput setaf 3
+echo "################################################################"
+echo "################### Installing ChadWM Setup #####################"
+echo "################################################################"
+tput sgr0
 echo
 
-tput setaf 3
-  echo "################################################################"
-  echo "################### Installing ChadWM Setup #####################"
-  echo "################################################################"
-tput sgr0
-
-echo "Installing required packages from official repos..."
+# Install required dependencies
 sudo pacman -S --noconfirm --needed \
-  kitty rofi sxhkd neofetch btop fastfetch \
-  thunar file-roller gvfs gvfs-smb \
-  flameshot mpv picom lxappearance \
-  volumeicon pavucontrol feh nitrogen \
-  arandr unzip unrar zip p7zip \
-  bitwarden nextcloud espanso \
-  xorg xorg-xinit xorg-xrandr xorg-xsetroot \
+  base-devel xorg xorg-xinit xorg-xrandr xorg-xsetroot \
+  sxhkd feh rofi picom kitty lxappearance \
+  thunar flameshot pavucontrol volumeicon \
+  arandr unzip unrar zip p7zip nitrogen \
   sddm
 
 # Enable SDDM
-echo "Enabling SDDM..."
 sudo systemctl enable sddm.service
 
-# Installing AUR apps using yay
+# Install yay if not installed
 if ! command -v yay &>/dev/null; then
   echo "Installing yay..."
   git clone https://aur.archlinux.org/yay-git.git /tmp/yay-git
-  cd /tmp/yay-git || exit
-  makepkg -si --noconfirm --needed
+  cd /tmp/yay-git || exit 1
+  makepkg -si --noconfirm
   cd ~
 fi
 
-# Ensure yay won’t ask for password during batch install
-export MAKEPKG="makepkg --skippgpcheck"
+# Commented out AUR apps for faster testing
+# yay -S --noconfirm \
+#   brave-beta-bin \
+#   logseq-desktop-bin \
+#   stacer-bin \
+#   sublime-text-4 \
+#   gitfiend \
+#   zen-browser-bin \
+#   bitwarden \
+#   nextcloud \
+#   espanso \
+#   spotify \
+#   lollypop \
+#   parole-media-player \
+#   vlc \
+#   discord \
+#   nomacs \
+#   insync \
+#   qbittorrent
 
-echo "Installing AUR apps via yay..."
-yay -S --noconfirm --needed \
-  brave-beta-bin \
-  logseq-desktop-bin \
-  stacer-bin \
-  sublime-text-4 \
-  gitfiend \
-  zen-browser-bin
-
-# Clone Dale’s custom ChadWM config
-mkdir -p ~/.config
+# Clone your ChadWM config
+echo "Cloning ChadWM config from your GitHub..."
 rm -rf ~/.config/chadwm
+mkdir -p ~/.config
 
-echo "Cloning ChadWM config from Dale’s GitHub..."
-git clone --depth=1 https://github.com/thorrrr/dale-chadwn.git /tmp/chadwm-temp
-mv /tmp/chadwm-temp/chadwm ~/.config/chadwm
-rm -rf /tmp/chadwm-temp
+# Use shallow clone to avoid auth issues
+git clone --depth=1 https://github.com/thorrrr/dale-chadwn.git ~/.config/chadwm
 
-# Build ChadWM if Makefile exists
-if [ -f ~/.config/chadwm/Makefile ]; then
-  echo "Building ChadWM with make..."
-  cd ~/.config/chadwm || exit
-  make && sudo make clean install
-else
-  echo "Makefile not found in ~/.config/chadwm. Build failed."
-fi
+# Build ChadWM
+cd ~/.config/chadwm || exit 1
+make clean
+sudo make clean install
 
-# Set up XSession entry for ChadWM (for SDDM)
-echo "Creating ChadWM desktop entry..."
-echo "[Desktop Entry]
+# Create SDDM session entry
+echo "Creating ChadWM desktop session entry..."
+sudo tee /usr/share/xsessions/chadwm.desktop >/dev/null <<EOF
+[Desktop Entry]
 Name=ChadWM
 Comment=ChadWM window manager session
 Exec=/usr/local/bin/chadwm-start
 TryExec=/usr/local/bin/chadwm-start
 Type=Application
-X-SDDM-DesktopName=ChadWM
-DesktopNames=ChadWM" | sudo tee /usr/share/xsessions/chadwm.desktop > /dev/null
+DesktopNames=ChadWM
+EOF
 
-# Create launcher script for session startup
-echo "#!/bin/bash
-exec ~/.config/chadwm/autostart.sh" | sudo tee /usr/local/bin/chadwm-start > /dev/null
+# Create the session startup script
+echo "Creating /usr/local/bin/chadwm-start..."
+sudo tee /usr/local/bin/chadwm-start >/dev/null <<EOF
+#!/bin/bash
+exec ~/.config/chadwm/autostart.sh
+EOF
+
 sudo chmod +x /usr/local/bin/chadwm-start
 
-# Fallback: create a basic autostart.sh if missing
-if [ ! -f ~/.config/chadwm/autostart.sh ]; then
-  echo "#!/bin/bash
-sxhkd &
-bars &
-exec chadwm" > ~/.config/chadwm/autostart.sh
-fi
+# Make sure your autostart is executable
+chmod +x ~/.config/chadwm/autostart.sh 2>/dev/null || echo "Note: autostart.sh not found or not executable."
 
-chmod +x ~/.config/chadwm/autostart.sh
-
-# Final message
+# Done
 echo
-
 tput setaf 2
-  echo "################################################################"
-  echo "################### ChadWM Setup Complete #######################"
-  echo "################################################################"
+echo "################################################################"
+echo "################### ChadWM Setup Complete #######################"
+echo "################################################################"
 tput sgr0
-
-echo "Reboot your system and select 'ChadWM' from the SDDM login menu."
+echo
+echo "✅ Reboot and select ChadWM from the SDDM login menu."
