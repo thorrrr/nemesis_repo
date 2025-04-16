@@ -11,21 +11,29 @@ DRY_RUN=false  # Set to true for testing only
 # Functions
 ##################################################################################################################
 
-func_install() {
-    if pacman -Qi "$1" &>/dev/null; then
-        tput setaf 2; echo "✔ $1 is already installed"; tput sgr0
-    else
-        tput setaf 3; echo "➕ Installing: $1"; tput sgr0
-        [[ "$DRY_RUN" = false ]] && sudo pacman -S --noconfirm --needed "$1"
-    fi
-}
+func_clone_and_build_chadwm() {
+    echo; tput setaf 4
+    echo "🌐 Cloning ChadWM repo from GitHub via SSH and preparing setup..."
+    tput sgr0
 
-func_install_aur() {
-    if pacman -Qm "$1" &>/dev/null; then
-        tput setaf 2; echo "✔ AUR: $1 is already installed"; tput sgr0
+    local target_dir=~/.config/chadwm-git
+
+    if [[ "$DRY_RUN" = false ]]; then
+        rm -rf "$target_dir"
+        git clone --depth=1 git@github.com:thorrrr/dale-chadwn.git "$target_dir" || {
+            echo "❌ Failed to clone ChadWM repo"
+            exit 1
+        }
     else
-        tput setaf 5; echo "➕ Installing AUR package: $1"; tput sgr0
-        [[ "$DRY_RUN" = false ]] && paru -S --noconfirm --needed "$1"
+        echo "🔎 DRY RUN: Would clone to $target_dir"
+    fi
+
+    # Optional: run script inside repo if needed
+    if [[ -x "$target_dir/scripts/install-chadwm.sh" ]]; then
+        chmod +x "$target_dir/scripts/install-chadwm.sh"
+        [[ "$DRY_RUN" = false ]] && "$target_dir/scripts/install-chadwm.sh" || echo "🔎 DRY RUN: Would run install-chadwm.sh"
+    else
+        echo "⚠️ No install-chadwm.sh found inside $target_dir/scripts/"
     fi
 }
 

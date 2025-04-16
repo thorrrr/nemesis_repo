@@ -41,6 +41,14 @@ echo
 sudo pacman -Rs --noconfirm vim vim-runtime
 sudo pacman -R --noconfirm archinstall
 sudo pacman -Rs pragha --noconfirm
+sudo pacman -Rns --noconfirm electron34
+sudo pacman -Rns --noconfirm visual-studio-code-bin
+sudo pacman -Rns --noconfirm nomacs
+sudo pacman -Rns --noconfirm insync
+sudo pacman -Rns --noconfirm qbittorrent
+sudo pacman -Rns --noconfirm spotify
+sudo pacman -Rns --noconfirm lollypop
+sudo pacman -Rns --noconfirm parole-media-player
 sudo pacman -Rs lftp --noconfirm
 sudo pacman -Rs xf86-video-amdgpu --noconfirm
 sudo pacman -Rs xf86-video-fbdev --noconfirm
@@ -55,6 +63,9 @@ sudo pacman -Rs --noconfirm xfce4-artwork
 sudo rm -rf /usr/share/backgrounds/xfce
 sudo pacman -Rs broadcom-wl-dkms --noconfirm
 sudo pacman -Rs rtl8821cu-morrownr-dkms-git --noconfirm
+
+
+
 
 sudo pacman -Rs --noconfirm adobe-source-han-sans-cn-fonts
 sudo pacman -Rs --noconfirm adobe-source-han-sans-jp-fonts
