@@ -156,6 +156,12 @@ git clone "$USER_CHADWM_REPO_URL" "$CHADWM_CONFIG_DIR" || {
 echo "Repository cloned successfully to $CHADWM_CONFIG_DIR"
 SOURCE_METHOD="Cloned from $USER_CHADWM_REPO_URL" # For summary message
 
+# ===> ADDED THIS DEBUG LINE <===
+echo "DEBUG: Listing contents of $CHADWM_CONFIG_DIR"
+ls -la "$CHADWM_CONFIG_DIR"
+echo "DEBUG: End of listing"
+# ===> END OF DEBUG LINE <===
+
 
 # --- Build ChadWM ---
 # Source code is expected inside the 'chadwm' subdirectory of the cloned repo
@@ -174,7 +180,7 @@ if [ -f "$CHADWM_BUILD_DIR/Makefile" ]; then
     cd "$CHADWM_BUILD_DIR" || exit 1 # Change into the build directory
     echo "Building ChadWM in $(pwd)..." # Confirm directory
 
-    # === Updated Build Sequence ===
+    # === Build Sequence as per user request ===
     # Build first as the regular user
     make || {
         tput setaf 1
