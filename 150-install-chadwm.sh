@@ -47,7 +47,7 @@ echo
 echo "Installing dependencies..."
 list=(
     alacritty arandr autorandr base-devel dash dmenu feh flameshot gcc git
-    gvfs kitty lxappearance make nitrogen p7zip pavucontrol picom polkit-gnome
+    gvfs lxappearance make nitrogen p7zip pavucontrol picom polkit-gnome
     rofi sddm sxhkd thunar thunar-archive-plugin thunar-volman ttf-hack
     ttf-jetbrains-mono-nerd unrar unzip volumeicon xfce4-notifyd
     xfce4-power-manager xorg xorg-xinit xorg-xrandr xorg-xsetroot zip
@@ -111,14 +111,14 @@ sudo make clean install || {
 
 cat > /tmp/chadwm.desktop <<EOF
 [Desktop Entry]
-Name=Chadwm
+Name=ChadWM
 Comment=Dale's ChadWM session
 Exec=/usr/local/bin/chadwm-start
 TryExec=/usr/local/bin/chadwm-start
 Type=Application
 DesktopNames=Chadwm;ChadWM
 EOF
-sudo cp /tmp/chadwm.desktop /usr/share/xsessions/dale-chadwm.desktop
+sudo cp /tmp/chadwm.desktop /usr/share/xsessions/chadwm.desktop
 rm /tmp/chadwm.desktop
 
 cat > /tmp/chadwm-start <<EOF
@@ -131,10 +131,16 @@ rm /tmp/chadwm-start
 
 AUTOSTART_SCRIPT="$CHADWM_CONFIG_DIR/autostart.sh"
 
-if [ ! -f "$AUTOSTART_SCRIPT" ]; then
-    echo "Creating minimal autostart.sh..."
-    cat > "$AUTOSTART_SCRIPT" <<EOF
+# Force rewrite autostart.sh with environment detection
+cat > "$AUTOSTART_SCRIPT" <<'EOF'
 #!/bin/bash
+
+SESSION_DESKTOP=$(echo "$XDG_CURRENT_DESKTOP" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$SESSION_DESKTOP" != *chadwm* ]]; then
+    echo "Not launching ChadWM autostart because session is: $SESSION_DESKTOP"
+    exit 0
+fi
 
 sxhkd &
 picom &
@@ -143,25 +149,10 @@ xfce4-notifyd &
 feh --bg-scale ~/Pictures/wallpaper.jpg &
 exec chadwm
 EOF
-fi
 
 chmod +x "$AUTOSTART_SCRIPT"
 
-echo "exec /usr/local/bin/chadwm-start" > ~/.xinitrc
-chmod +x ~/.xinitrc
-
-echo "exec /usr/local/bin/chadwm-start" > ~/.xsession
-chmod +x ~/.xsession
-
-read -rp "Enable SDDM autologin into ChadWM? (y/N): " enable_autologin
-if [[ "$enable_autologin" =~ ^[Yy]$ ]]; then
-    sudo mkdir -p /etc/sddm.conf.d
-    cat <<EOF | sudo tee /etc/sddm.conf.d/autologin.conf >/dev/null
-[Autologin]
-User=$USER
-Session=dale-chadwm.desktop
-EOF
-fi
+rm -f ~/.xinitrc ~/.xsession 2>/dev/null
 
 echo
 printf "\e[32m################################################################\e[0m\n"
@@ -170,6 +161,6 @@ printf "\e[32m################################################################\e
 echo
 
 echo "✅ Built from: $CHADWM_BUILD_DIR"
-echo "✅ SDDM session: /usr/share/xsessions/dale-chadwm.desktop"
+echo "✅ SDDM session: /usr/share/xsessions/chadwm.desktop"
 echo "✅ Launch script: /usr/local/bin/chadwm-start"
-echo "➡️ Reboot and select 'Chadwm' in SDDM if autologin was not enabled."
+echo "➡️ Reboot and select 'ChadWM' in SDDM login screen."
