@@ -113,12 +113,12 @@ sudo make clean install || {
 
 cat > /tmp/chadwm.desktop <<EOF
 [Desktop Entry]
-Name=DaleChadWM
+Name=Chadwm
 Comment=Dale's ChadWM session
 Exec=/usr/local/bin/chadwm-start
 TryExec=/usr/local/bin/chadwm-start
 Type=Application
-DesktopNames=DaleChadWM;ChadWM
+DesktopNames=Chadwm;ChadWM
 EOF
 sudo cp /tmp/chadwm.desktop /usr/share/xsessions/dale-chadwm.desktop
 rm /tmp/chadwm.desktop
@@ -138,6 +138,21 @@ else
     echo "⚠️  Warning: Autostart script not found: $AUTOSTART_SCRIPT"
 fi
 
+# Optional: Set up .xinitrc and .xsession fallback
+echo "exec /usr/local/bin/chadwm-start" > ~/.xinitrc
+chmod +x ~/.xinitrc
+
+echo "exec /usr/local/bin/chadwm-start" > ~/.xsession
+chmod +x ~/.xsession
+
+# Optional: Auto-login SDDM in VM/testing scenarios (safe to remove)
+sudo mkdir -p /etc/sddm.conf.d
+cat <<EOF | sudo tee /etc/sddm.conf.d/autologin.conf >/dev/null
+[Autologin]
+User=$USER
+Session=dale-chadwm.desktop
+EOF
+
 echo
 printf "\e[32m################################################################\e[0m\n"
 echo "################### Dale's ChadWM Setup Complete ################"
@@ -147,4 +162,4 @@ echo
 echo "✅ Built from: $CHADWM_BUILD_DIR"
 echo "✅ SDDM session: /usr/share/xsessions/dale-chadwm.desktop"
 echo "✅ Launch script: /usr/local/bin/chadwm-start"
-echo "➡️ Reboot and select 'DaleChadWM' in SDDM."
+echo "➡️ Reboot and select 'Chadwm' in SDDM."
