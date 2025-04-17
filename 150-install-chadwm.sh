@@ -111,52 +111,27 @@ sudo make clean install || {
 
 cat > /tmp/chadwm.desktop <<EOF
 [Desktop Entry]
-Name=ChadWM
-Comment=Dale's ChadWM session
-Exec=/usr/local/bin/chadwm-start
-TryExec=/usr/local/bin/chadwm-start
+Encoding=UTF-8
+Name=Chadwm
+Comment=Dynamic window manager
+Exec=/usr/bin/exec-chadwm
+Icon=chadwm
 Type=Application
-DesktopNames=Chadwm;ChadWM
 EOF
 sudo cp /tmp/chadwm.desktop /usr/share/xsessions/chadwm.desktop
 rm /tmp/chadwm.desktop
 
-cat > /tmp/chadwm-start <<EOF
+# Match live system: script lives in /usr/bin/exec-chadwm
+sudo tee /usr/bin/exec-chadwm > /dev/null <<'EOF'
 #!/bin/bash
-exec \$HOME/.config/arco-chadwm/autostart.sh
-EOF
-sudo cp /tmp/chadwm-start /usr/local/bin/chadwm-start
-sudo chmod +x /usr/local/bin/chadwm-start
-rm /tmp/chadwm-start
-
-AUTOSTART_SCRIPT="$CHADWM_CONFIG_DIR/autostart.sh"
-
-# Force rewrite autostart.sh with environment detection
-cat > "$AUTOSTART_SCRIPT" <<'EOF'
-#!/bin/bash
-
-SESSION_DESKTOP=$(echo "$XDG_CURRENT_DESKTOP" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$SESSION_DESKTOP" != *chadwm* ]]; then
-    echo "[autostart] Detected non-ChadWM session: $SESSION_DESKTOP — exiting."
-    exit 0
-fi
-
-# Launch core apps only under ChadWM
 pgrep -x sxhkd >/dev/null || sxhkd &
 picom &
 volumeicon &
 xfce4-notifyd &
-
 [ -f ~/Pictures/wallpaper.jpg ] && feh --bg-scale ~/Pictures/wallpaper.jpg &
-
 exec chadwm
 EOF
-
-chmod +x "$AUTOSTART_SCRIPT"
-
-# Do not remove user session files
-# rm -f ~/.xinitrc ~/.xsession 2>/dev/null
+sudo chmod +x /usr/bin/exec-chadwm
 
 echo
 printf "\e[32m################################################################\e[0m\n"
@@ -166,5 +141,5 @@ echo
 
 echo "✅ Built from: $CHADWM_BUILD_DIR"
 echo "✅ SDDM session: /usr/share/xsessions/chadwm.desktop"
-echo "✅ Launch script: /usr/local/bin/chadwm-start"
+echo "✅ Launch script: /usr/bin/exec-chadwm"
 echo "➡️ Reboot and select 'ChadWM' in SDDM login screen."
