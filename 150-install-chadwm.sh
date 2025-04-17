@@ -18,7 +18,7 @@ func_install() {
     if pacman -Qi $1 &> /dev/null; then
         tput setaf 2
         echo "###############################################################################"
-        echo "################## Package "$1" is already installed"
+        echo "################## Package \"$1\" is already installed"
         echo "###############################################################################"
         echo
         tput sgr0
@@ -123,18 +123,27 @@ rm /tmp/chadwm.desktop
 
 cat > /tmp/chadwm-start <<EOF
 #!/bin/bash
-exec $HOME/.config/arco-chadwm/autostart.sh
+exec \$HOME/.config/arco-chadwm/autostart.sh
 EOF
 sudo cp /tmp/chadwm-start /usr/local/bin/chadwm-start
 sudo chmod +x /usr/local/bin/chadwm-start
 rm /tmp/chadwm-start
 
 AUTOSTART_SCRIPT="$CHADWM_CONFIG_DIR/autostart.sh"
-if [ -f "$AUTOSTART_SCRIPT" ]; then
-    chmod +x "$AUTOSTART_SCRIPT"
-else
-    echo "⚠️  Warning: Autostart script not found: $AUTOSTART_SCRIPT"
+
+if [ ! -f "$AUTOSTART_SCRIPT" ]; then
+    echo "Creating minimal autostart.sh..."
+    cat > "$AUTOSTART_SCRIPT" <<EOF
+#!/bin/bash
+
+sxhkd &
+picom &
+feh --bg-scale ~/Pictures/wallpaper.jpg &
+exec chadwm
+EOF
 fi
+
+chmod +x "$AUTOSTART_SCRIPT"
 
 echo "exec /usr/local/bin/chadwm-start" > ~/.xinitrc
 chmod +x ~/.xinitrc
