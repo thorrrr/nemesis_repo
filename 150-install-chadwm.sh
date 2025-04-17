@@ -1,127 +1,33 @@
 #!/bin/bash
-##################################################################################################################
-# Author     : Dale Holden
-# Purpose    : Installs Dale's ChadWM version from Git, sets up session and build process, with safe XFCE fallback.
-##################################################################################################################
-
-if [ "$DEBUG" = true ]; then
-    echo
-    echo "------------------------------------------------------------"
-    echo "Running $(basename $0)"
-    echo "------------------------------------------------------------"
-    echo
-    read -n 1 -s -r -p "Debug mode is on. Press any key to continue..."
-    echo
-fi
-
-func_install() {
-    if pacman -Qi $1 &> /dev/null; then
-        tput setaf 2
-        echo "###############################################################################"
-        echo "################## Package \"$1\" is already installed"
-        echo "###############################################################################"
-        echo
-        tput sgr0
-    else
-        tput setaf 3
-        echo "###############################################################################"
-        echo "##################  Installing package "  $1
-        echo "###############################################################################"
-        echo
-        tput sgr0
-        sudo pacman -S --noconfirm --needed $1 || {
-            tput setaf 1
-            echo "!!! Error installing package $1. Please check pacman output/logs."
-            tput sgr0
-            exit 1
-        }
-    fi
-}
+set -e
 
 echo
-printf "\e[33m################################################################\e[0m\n"
-echo "################### Installing Dale's ChadWM Setup ##############"
-printf "\e[33m################################################################\e[0m\n"
-echo
+echo ">>> Installing Dale's ChadWM setup (like ATT but from your repo)"
 
-echo "Installing dependencies..."
-list=(
-    alacritty arandr autorandr base-devel dash dmenu feh flameshot gcc git
-    gvfs lxappearance make nitrogen p7zip pavucontrol picom polkit-gnome
-    rofi sddm sxhkd thunar thunar-archive-plugin thunar-volman ttf-hack
-    ttf-jetbrains-mono-nerd unrar unzip volumeicon xfce4-notifyd
-    xfce4-power-manager xorg xorg-xinit xorg-xrandr xorg-xsetroot zip
-)
+# 1. Install core packages (exact match to ATT output)
+sudo pacman -S --noconfirm --needed \
+    alacritty arcolinux-logout-git arcolinux-powermenu-git arcolinux-rofi-git \
+    arcolinux-rofi-themes-git arcolinux-volumeicon-git arcolinux-root-git \
+    dmenu feh gvfs lxappearance picom-git polkit-gnome rofi-lbonn-wayland \
+    sxhkd thunar thunar-archive-plugin thunar-volman ttf-hack \
+    ttf-jetbrains-mono-nerd ttf-meslo-nerd-font-powerlevel10k \
+    volumeicon xfce4-notifyd xfce4-power-manager xfce4-screenshooter \
+    xfce4-settings xfce4-taskmanager xfce4-terminal nano
 
-count=0
-for name in "${list[@]}" ; do
-    count=$[count+1]
-    echo "Installing package nr. $count  $name"
-    func_install $name
-done
+# 2. Enable SDDM
+sudo systemctl enable sddm.service
 
-sudo systemctl enable sddm.service || {
-    tput setaf 1
-    echo "!!! Error enabling SDDM. Check sudo permissions or logs."
-    tput sgr0
-}
+# 3. Clone YOUR ChadWM setup
+CHADWM_DIR="$HOME/.config/arco-chadwm"
+rm -rf "$CHADWM_DIR"
+git clone https://github.com/thorrrr/dale-chadwn.git "$CHADWM_DIR"
 
-USER_CHADWM_REPO_URL="https://github.com/thorrrr/dale-chadwn.git"
-CHADWM_CONFIG_DIR="$HOME/.config/arco-chadwm"
+# 4. Build ChadWM
+cd "$CHADWM_DIR/chadwm"
+make
+sudo make clean install
 
-rm -rf "$CHADWM_CONFIG_DIR"
-echo "Cloning ChadWM repo to $CHADWM_CONFIG_DIR..."
-git clone --depth=1 "$USER_CHADWM_REPO_URL" "$CHADWM_CONFIG_DIR" || {
-    tput setaf 1
-    echo "!!! Git clone failed"
-    tput sgr0
-    exit 1
-}
-
-if [ -d "$CHADWM_CONFIG_DIR/dale-chadwn" ]; then
-    mv "$CHADWM_CONFIG_DIR/dale-chadwn"/* "$CHADWM_CONFIG_DIR"/
-    rm -rf "$CHADWM_CONFIG_DIR/dale-chadwn"
-fi
-
-rm -f "$CHADWM_CONFIG_DIR/README.md" "$CHADWM_CONFIG_DIR/setup-git.sh" "$CHADWM_CONFIG_DIR/up.sh"
-
-CHADWM_BUILD_DIR="$CHADWM_CONFIG_DIR/chadwm"
-echo "Building ChadWM from $CHADWM_BUILD_DIR..."
-
-if [ ! -f "$CHADWM_BUILD_DIR/Makefile" ]; then
-    tput setaf 1
-    echo "!!! Makefile not found. Build folder missing?"
-    tput sgr0
-    exit 1
-fi
-
-cd "$CHADWM_BUILD_DIR"
-make || {
-    tput setaf 1
-    echo "!!! Build failed"
-    tput sgr0
-    exit 1
-}
-sudo make clean install || {
-    tput setaf 1
-    echo "!!! Install failed"
-    tput sgr0
-    exit 1
-}
-
-cat > /tmp/chadwm.desktop <<EOF
-[Desktop Entry]
-Encoding=UTF-8
-Name=Chadwm
-Comment=Dynamic window manager
-Exec=/usr/bin/exec-chadwm
-Icon=chadwm
-Type=Application
-EOF
-sudo cp /tmp/chadwm.desktop /usr/share/xsessions/chadwm.desktop
-rm /tmp/chadwm.desktop
-
-# Match live system: script lives in /usr/bin/exec-chadwm
+# 5. Create launch script
 sudo tee /usr/bin/exec-chadwm > /dev/null <<'EOF'
 #!/bin/bash
 pgrep -x sxhkd >/dev/null || sxhkd &
@@ -133,13 +39,17 @@ exec chadwm
 EOF
 sudo chmod +x /usr/bin/exec-chadwm
 
-echo
-printf "\e[32m################################################################\e[0m\n"
-echo "################### Dale's ChadWM Setup Complete ################"
-printf "\e[32m################################################################\e[0m\n"
-echo
+# 6. Create SDDM session
+sudo tee /usr/share/xsessions/chadwm.desktop > /dev/null <<'EOF'
+[Desktop Entry]
+Encoding=UTF-8
+Name=Chadwm
+Comment=Dynamic window manager
+Exec=/usr/bin/exec-chadwm
+Icon=chadwm
+Type=Application
+EOF
 
-echo "✅ Built from: $CHADWM_BUILD_DIR"
-echo "✅ SDDM session: /usr/share/xsessions/chadwm.desktop"
-echo "✅ Launch script: /usr/bin/exec-chadwm"
-echo "➡️ Reboot and select 'ChadWM' in SDDM login screen."
+echo
+echo "✅ ChadWM installed from: https://github.com/thorrrr/dale-chadwn.git"
+echo "➡️ Select 'ChadWM' from SDDM after reboot."
