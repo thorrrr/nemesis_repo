@@ -1,7 +1,7 @@
 #!/bin/bash
 ##################################################################################################################
 # Author     : Dale Holden
-# Purpose    : Installs Dale's ChadWM version from Git, sets up session and build process.
+# Purpose    : Installs Dale's ChadWM version from Git, sets up session and build process, with safe XFCE fallback.
 ##################################################################################################################
 
 if [ "$DEBUG" = true ]; then
@@ -138,21 +138,25 @@ cat > "$AUTOSTART_SCRIPT" <<'EOF'
 SESSION_DESKTOP=$(echo "$XDG_CURRENT_DESKTOP" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$SESSION_DESKTOP" != *chadwm* ]]; then
-    echo "Not launching ChadWM autostart because session is: $SESSION_DESKTOP"
+    echo "[autostart] Detected non-ChadWM session: $SESSION_DESKTOP — exiting."
     exit 0
 fi
 
-sxhkd &
+# Launch core apps only under ChadWM
+pgrep -x sxhkd >/dev/null || sxhkd &
 picom &
 volumeicon &
 xfce4-notifyd &
-feh --bg-scale ~/Pictures/wallpaper.jpg &
+
+[ -f ~/Pictures/wallpaper.jpg ] && feh --bg-scale ~/Pictures/wallpaper.jpg &
+
 exec chadwm
 EOF
 
 chmod +x "$AUTOSTART_SCRIPT"
 
-rm -f ~/.xinitrc ~/.xsession 2>/dev/null
+# Do not remove user session files
+# rm -f ~/.xinitrc ~/.xsession 2>/dev/null
 
 echo
 printf "\e[32m################################################################\e[0m\n"
