@@ -4,9 +4,6 @@
 # Purpose    : Installs Dale's ChadWM version from Git, sets up session and build process.
 ##################################################################################################################
 
-# Exit immediately if a command exits with a non-zero status.
-# set -e # Uncomment this for stricter error checking if desired
-
 if [ "$DEBUG" = true ]; then
     echo
     echo "------------------------------------------------------------"
@@ -16,17 +13,6 @@ if [ "$DEBUG" = true ]; then
     read -n 1 -s -r -p "Debug mode is on. Press any key to continue..."
     echo
 fi
-
-##################################################################################################################
-# Colors for better output
-# tput setaf 1 = red
-# tput setaf 2 = green
-# tput setaf 3 = yellow
-# tput setaf 6 = cyan
-# tput sgr0 = reset color
-
-##################################################################################################################
-# Function to check if package is installed and install if needed
 
 func_install() {
     if pacman -Qi $1 &> /dev/null; then
@@ -45,9 +31,7 @@ func_install() {
         tput sgr0
         sudo pacman -S --noconfirm --needed $1 || {
             tput setaf 1
-            echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
             echo "!!! Error installing package $1. Please check pacman output/logs."
-            echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
             tput sgr0
             exit 1
         }
@@ -55,22 +39,12 @@ func_install() {
 }
 
 echo
-tput setaf 3
-echo "################################################################"
+printf "\e[33m################################################################\e[0m\n"
 echo "################### Installing Dale's ChadWM Setup ##############"
-echo "################################################################"
-tput sgr0
+printf "\e[33m################################################################\e[0m\n"
 echo
 
-# Install required dependencies
-echo
-tput setaf 2
-echo "################################################################"
-echo "################### Installing dependencies"
-echo "################################################################"
-tput sgr0
-echo
-
+echo "Installing dependencies..."
 list=(
     alacritty arandr autorandr base-devel dash dmenu feh flameshot gcc git
     gvfs kitty lxappearance make nitrogen p7zip pavucontrol picom polkit-gnome
@@ -82,13 +56,10 @@ list=(
 count=0
 for name in "${list[@]}" ; do
     count=$[count+1]
-    tput setaf 3
-    echo "Installing package nr. "$count " " $name
-    tput sgr0
+    echo "Installing package nr. $count  $name"
     func_install $name
 done
 
-echo "Enabling SDDM service..."
 sudo systemctl enable sddm.service || {
     tput setaf 1
     echo "!!! Error enabling SDDM. Check sudo permissions or logs."
@@ -98,112 +69,82 @@ sudo systemctl enable sddm.service || {
 USER_CHADWM_REPO_URL="https://github.com/thorrrr/dale-chadwn.git"
 CHADWM_CONFIG_DIR="$HOME/.config/arco-chadwm"
 
-echo "Cleaning up existing target installation: $CHADWM_CONFIG_DIR"
 rm -rf "$CHADWM_CONFIG_DIR"
-
-echo "Cloning your ChadWM repository from $USER_CHADWM_REPO_URL..."
-if ! command -v git &>/dev/null; then echo "Error: git command not found."; exit 1; fi
-
+echo "Cloning ChadWM repo to $CHADWM_CONFIG_DIR..."
 git clone --depth=1 "$USER_CHADWM_REPO_URL" "$CHADWM_CONFIG_DIR" || {
     tput setaf 1
-    echo "!!! Error cloning your ChadWM repository from $USER_CHADWM_REPO_URL"
+    echo "!!! Git clone failed"
     tput sgr0
     exit 1
 }
 
-SOURCE_METHOD="Cloned to ~/.config/arco-chadwm"
-echo "Repository cloned successfully to $CHADWM_CONFIG_DIR"
-ls -la "$CHADWM_CONFIG_DIR"
+# Move contents of dale-chadwn subfolder up and remove extra files if necessary
+if [ -d "$CHADWM_CONFIG_DIR/dale-chadwn" ]; then
+    mv "$CHADWM_CONFIG_DIR/dale-chadwn"/* "$CHADWM_CONFIG_DIR"/
+    rm -rf "$CHADWM_CONFIG_DIR/dale-chadwn"
+fi
+
+# Remove unrelated files if they exist (safe cleanup)
+rm -f "$CHADWM_CONFIG_DIR/README.md" "$CHADWM_CONFIG_DIR/setup-git.sh" "$CHADWM_CONFIG_DIR/up.sh"
 
 CHADWM_BUILD_DIR="$CHADWM_CONFIG_DIR/chadwm"
+echo "Building ChadWM from $CHADWM_BUILD_DIR..."
 
-echo "Attempting to build ChadWM from $CHADWM_BUILD_DIR..."
-
-if [ ! -d "$CHADWM_BUILD_DIR" ]; then
+if [ ! -f "$CHADWM_BUILD_DIR/Makefile" ]; then
     tput setaf 1
-    echo "Error: Build directory $CHADWM_BUILD_DIR not found after cloning."
+    echo "!!! Makefile not found. Build folder missing?"
     tput sgr0
     exit 1
 fi
 
-if [ -f "$CHADWM_BUILD_DIR/Makefile" ]; then
-    cd "$CHADWM_BUILD_DIR" || exit 1
-    echo "Building ChadWM in $(pwd)..."
-
-    make || {
-        tput setaf 1
-        echo "!!! Error: ChadWM 'make' (build) failed."
-        tput sgr0
-        exit 1
-    }
-
-    sudo make clean install || {
-        tput setaf 1
-        echo "!!! Error: ChadWM 'sudo make clean install' failed."
-        tput sgr0
-        exit 1
-    }
-else
+cd "$CHADWM_BUILD_DIR"
+make || {
     tput setaf 1
-    echo "Error: Makefile not found in $CHADWM_BUILD_DIR. Cannot build."
+    echo "!!! Build failed"
     tput sgr0
     exit 1
-fi
+}
+sudo make clean install || {
+    tput setaf 1
+    echo "!!! Install failed"
+    tput sgr0
+    exit 1
+}
 
-echo "Creating ChadWM desktop session entry..."
 cat > /tmp/chadwm.desktop <<EOF
 [Desktop Entry]
 Name=DaleChadWM
-Comment=Dale's ChadWM window manager session
+Comment=Dale's ChadWM session
 Exec=/usr/local/bin/chadwm-start
 TryExec=/usr/local/bin/chadwm-start
 Type=Application
 DesktopNames=DaleChadWM;ChadWM
 EOF
-sudo cp /tmp/chadwm.desktop /usr/share/xsessions/dale-chadwm.desktop || {
-    tput setaf 1
-    echo "!!! Error copying dale-chadwm.desktop."
-    tput sgr0
-}
+sudo cp /tmp/chadwm.desktop /usr/share/xsessions/dale-chadwm.desktop
 rm /tmp/chadwm.desktop
 
-echo "Creating /usr/local/bin/chadwm-start..."
 cat > /tmp/chadwm-start <<EOF
 #!/bin/bash
 exec $HOME/.config/arco-chadwm/chadwm/autostart.sh
 EOF
-sudo cp /tmp/chadwm-start /usr/local/bin/chadwm-start || { echo "Error copying chadwm-start"; exit 1; }
-sudo chmod +x /usr/local/bin/chadwm-start || { echo "Error setting execute permission on chadwm-start"; exit 1; }
+sudo cp /tmp/chadwm-start /usr/local/bin/chadwm-start
+sudo chmod +x /usr/local/bin/chadwm-start
 rm /tmp/chadwm-start
 
 AUTOSTART_SCRIPT="$CHADWM_CONFIG_DIR/chadwm/autostart.sh"
 if [ -f "$AUTOSTART_SCRIPT" ]; then
-    echo "Making your autostart.sh executable: $AUTOSTART_SCRIPT"
     chmod +x "$AUTOSTART_SCRIPT"
 else
-    tput setaf 3
-    echo "!!! Warning: Autostart script not found at $AUTOSTART_SCRIPT after cloning."
-    tput sgr0
+    echo "⚠️  Warning: Autostart script not found: $AUTOSTART_SCRIPT"
 fi
 
 echo
-tput setaf 2
-echo "################################################################"
+printf "\e[32m################################################################\e[0m\n"
 echo "################### Dale's ChadWM Setup Complete ################"
-echo "################################################################"
-tput sgr0
+printf "\e[32m################################################################\e[0m\n"
 echo
 
-echo "✅ ChadWM source method: $SOURCE_METHOD"
-echo "✅ ChadWM built and installed from: $CHADWM_BUILD_DIR"
-echo "✅ SDDM session file created: /usr/share/xsessions/dale-chadwm.desktop"
-echo "✅ Launch script created: /usr/local/bin/chadwm-start"
-if [ -f "$AUTOSTART_SCRIPT" ]; then
-    echo "✅ Autostart script found: $AUTOSTART_SCRIPT (Made executable)"
-else
-    echo "⚠️ Autostart script NOT found: $AUTOSTART_SCRIPT (Manual setup may be needed)"
-fi
-echo
-
-echo "➡️ Reboot your system."
-echo "➡️ At the SDDM login screen, select 'DaleChadWM' from the session menu."
+echo "✅ Built from: $CHADWM_BUILD_DIR"
+echo "✅ SDDM session: /usr/share/xsessions/dale-chadwm.desktop"
+echo "✅ Launch script: /usr/local/bin/chadwm-start"
+echo "➡️ Reboot and select 'DaleChadWM' in SDDM."
