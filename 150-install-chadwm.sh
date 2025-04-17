@@ -78,13 +78,11 @@ git clone --depth=1 "$USER_CHADWM_REPO_URL" "$CHADWM_CONFIG_DIR" || {
     exit 1
 }
 
-# Move contents of dale-chadwn subfolder up and remove extra files if necessary
 if [ -d "$CHADWM_CONFIG_DIR/dale-chadwn" ]; then
     mv "$CHADWM_CONFIG_DIR/dale-chadwn"/* "$CHADWM_CONFIG_DIR"/
     rm -rf "$CHADWM_CONFIG_DIR/dale-chadwn"
 fi
 
-# Remove unrelated files if they exist (safe cleanup)
 rm -f "$CHADWM_CONFIG_DIR/README.md" "$CHADWM_CONFIG_DIR/setup-git.sh" "$CHADWM_CONFIG_DIR/up.sh"
 
 CHADWM_BUILD_DIR="$CHADWM_CONFIG_DIR/chadwm"
@@ -125,27 +123,25 @@ rm /tmp/chadwm.desktop
 
 cat > /tmp/chadwm-start <<EOF
 #!/bin/bash
-exec $HOME/.config/arco-chadwm/chadwm/autostart.sh
+exec $HOME/.config/arco-chadwm/autostart.sh
 EOF
 sudo cp /tmp/chadwm-start /usr/local/bin/chadwm-start
 sudo chmod +x /usr/local/bin/chadwm-start
 rm /tmp/chadwm-start
 
-AUTOSTART_SCRIPT="$CHADWM_CONFIG_DIR/chadwm/autostart.sh"
+AUTOSTART_SCRIPT="$CHADWM_CONFIG_DIR/autostart.sh"
 if [ -f "$AUTOSTART_SCRIPT" ]; then
     chmod +x "$AUTOSTART_SCRIPT"
 else
     echo "⚠️  Warning: Autostart script not found: $AUTOSTART_SCRIPT"
 fi
 
-# Optional: Set up .xinitrc and .xsession fallback
 echo "exec /usr/local/bin/chadwm-start" > ~/.xinitrc
 chmod +x ~/.xinitrc
 
 echo "exec /usr/local/bin/chadwm-start" > ~/.xsession
 chmod +x ~/.xsession
 
-# Optional: Auto-login SDDM in VM/testing scenarios (safe to remove)
 sudo mkdir -p /etc/sddm.conf.d
 cat <<EOF | sudo tee /etc/sddm.conf.d/autologin.conf >/dev/null
 [Autologin]
