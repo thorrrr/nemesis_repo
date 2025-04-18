@@ -124,6 +124,7 @@ sudo pacman -S --noconfirm --needed mlocate
 sudo pacman -S --noconfirm --needed meld
 sudo pacman -S --noconfirm --needed mintstick
 sudo pacman -S --noconfirm --needed most
+sudo pacman -S --noconfirm --needed nextcloud
 sudo pacman -S --noconfirm --needed namcap
 sudo pacman -S --noconfirm --needed nomacs
 sudo pacman -S --noconfirm --needed noto-fonts
