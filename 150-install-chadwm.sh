@@ -1,84 +1,129 @@
 #!/bin/bash
+#set -e
 ##################################################################################################################
-# Author     : Dale Holden
-# Purpose    : Installs Dale's ChadWM build the _same_ way the ArcoLinux Tweak Tool does, but using *your* Git repo.
-#              • Installs all needed runtime / build packages (skipping ones that are already present)
-#              • Clones or updates the repo to ~/.config/arco-chadwm
-#              • Finds the first Makefile anywhere inside the repo and builds/installs it
-#              • Creates the *exact* ATT launch path:   /usr/bin/exec-chadwm   +   /usr/share/xsessions/chadwm.desktop
-#              • Does **not** touch or break XFCE – ChadWM is an *additional* session you can pick in SDDM.
+# Author    : Dale Holden
 ##################################################################################################################
-set -euo pipefail
+#
+#   DO NOT JUST RUN THIS. EXAMINE AND JUDGE. RUN AT YOUR OWN RISK.
+#
+##################################################################################################################
+#tput setaf 0 = black
+#tput setaf 1 = red
+#tput setaf 2 = green
+#tput setaf 3 = yellow
+#tput setaf 4 = dark blue
+#tput setaf 5 = purple
+#tput setaf 6 = cyan
+#tput setaf 7 = gray
+#tput setaf 8 = light blue
+##################################################################################################################
 
-# --- 0. Configuration ------------------------------------------------------------------------
-REPO_URL="https://github.com/thorrrr/dale-chadwm.git"   # ← your repo
-CONFIG_DIR="$HOME/.config/arco-chadwm"                  # where the repo lives locally
-EXEC_WRAPPER="/usr/bin/exec-chadwm"                    # ATT‑compat launch script
-DESKTOP_FILE="/usr/share/xsessions/chadwm.desktop"     # ATT‑compat session file
+installed_dir=$(dirname $(readlink -f $(basename `pwd`)))
 
-# --- 1. Helper -------------------------------------------------------------------------------
-msg()   { tput setaf 6; printf "[INFO]  %s\n"  "$1"; tput sgr0; }
-okay()  { tput setaf 2; printf "[OK]    %s\n"  "$1"; tput sgr0; }
-err()   { tput setaf 1; printf "[ERROR] %s\n" "$1"; tput sgr0; exit 1; }
-install_pkg() {
-    if pacman -Qi "$1" &>/dev/null; then okay "$1 already installed"; else
-        msg "Installing $1"; sudo pacman -S --noconfirm --needed "$1" || err "could not install $1"; fi }
+##################################################################################################################
 
-# --- 2. Packages -----------------------------------------------------------------------------
-msg "Installing runtime + build dependencies"
-PKGS=(
-  alacritty arandr autorandr base-devel dash dmenu feh flameshot gcc git gvfs lxappearance
-  make nitrogen p7zip pavucontrol picom polkit-gnome rofi sxhkd thunar thunar-archive-plugin
-  thunar-volman ttf-hack ttf-jetbrains-mono-nerd unrar unzip volumeicon xfce4-notifyd
-  xfce4-power-manager xfce4-screenshooter xfce4-settings xfce4-taskmanager xfce4-terminal nano
-  xorg xorg-xinit xorg-xrandr xorg-xsetroot zip sddm
-)
-for p in "${PKGS[@]}"; do install_pkg "$p"; done
-
-sudo systemctl enable --quiet sddm.service || true
-
-# --- 3. Clone / update repo ------------------------------------------------------------------
-if [[ -d "$CONFIG_DIR/.git" ]]; then
-    msg "Updating existing repo in $CONFIG_DIR" && git -C "$CONFIG_DIR" pull --ff-only
-else
-    msg "Cloning repo → $CONFIG_DIR" && rm -rf "$CONFIG_DIR" && git clone --depth 1 "$REPO_URL" "$CONFIG_DIR"
+if [ "$DEBUG" = true ]; then
+    echo
+    echo "------------------------------------------------------------"
+    echo "Running $(basename $0)"
+    echo "------------------------------------------------------------"
+    echo
+    read -n 1 -s -r -p "Debug mode is on. Press any key to continue..."
+    echo
 fi
 
-# --- 4. Locate Makefile & build --------------------------------------------------------------
-msg "Searching for Makefile in repo"
-MAKEFILE_PATH=$(find "$CONFIG_DIR" -maxdepth 3 -type f -name Makefile | head -n1 || true)
-[[ -z "$MAKEFILE_PATH" ]] && err "Makefile not found – check repo layout"
-BUILD_DIR=$(dirname "$MAKEFILE_PATH")
-msg "Building ChadWM in $BUILD_DIR"
-make  -C "$BUILD_DIR"
-sudo make -C "$BUILD_DIR" clean install
+##################################################################################################################
 
-# --- 5. Create ATT‑style wrapper -------------------------------------------------------------
-msg "Creating $EXEC_WRAPPER"
-cat | sudo tee "$EXEC_WRAPPER" >/dev/null <<'EOF'
-#!/bin/bash
-pgrep -x sxhkd >/dev/null || sxhkd &
-picom &
-volumeicon &
-xfce4-notifyd &
-[ -f "$HOME/Pictures/wallpaper.jpg" ] && feh --bg-scale "$HOME/Pictures/wallpaper.jpg" &
-exec chadwm
-EOF
-sudo chmod +x "$EXEC_WRAPPER"
+func_install() {
+    if pacman -Qi $1 &> /dev/null; then
+        tput setaf 2
+        echo "###############################################################################"
+        echo "################## The package "$1" is already installed"
+        echo "###############################################################################"
+        echo
+        tput sgr0
+    else
+        tput setaf 3
+        echo "###############################################################################"
+        echo "##################  Installing package "  $1
+        echo "###############################################################################"
+        echo
+        tput sgr0
+        sudo pacman -S --noconfirm --needed $1
+    fi
+}
 
-msg "Creating $DESKTOP_FILE"
-cat | sudo tee "$DESKTOP_FILE" >/dev/null <<EOF
-[Desktop Entry]
-Encoding=UTF-8
-Name=Chadwm
-Comment=Dynamic window manager (Dale build)
-Exec=$EXEC_WRAPPER
-Icon=chadwm
-Type=Application
-EOF
+func_install_chadwm() {
 
-# --- 6. Done ---------------------------------------------------------------------------------
-okay "ChadWM built and installed from $BUILD_DIR"
-okay "Session file : $DESKTOP_FILE"
-okay "Launch script: $EXEC_WRAPPER"
-printf "\n➡️  Reboot and choose *ChadWM* in SDDM. XFCE remains available as usual.\n"
+    echo
+    tput setaf 2
+    echo "################################################################"
+    echo "################### Install chadwm"
+    echo "################################################################"
+    tput sgr0
+    echo
+
+    list=(
+    alacritty
+    archlinux-logout-git
+    edu-chadwm-git
+    autorandr
+    dash
+    dmenu
+    eww
+    feh
+    gcc
+    gvfs
+    lolcat
+    lxappearance-gtk3
+    make
+    picom
+    polkit-gnome
+    rofi-lbonn-wayland
+    sxhkd
+    thunar
+    thunar-archive-plugin
+    thunar-volman
+    ttf-hack
+    ttf-jetbrains-mono-nerd
+    ttf-meslo-nerd-font-powerlevel10k
+    volumeicon
+    xfce4-notifyd
+    xfce4-power-manager
+    xfce4-screenshooter
+    xfce4-settings
+    xfce4-taskmanager
+    xfce4-terminal
+    xorg-xsetroot
+    )
+
+    count=0
+
+    for name in "${list[@]}" ; do
+        count=$[count+1]
+        tput setaf 3;echo "Installing package nr.  "$count " " $name;tput sgr0;
+        func_install $name
+    done
+}
+
+
+if [ -f /tmp/install-chadwm ]; then
+
+    echo
+    tput setaf 2
+    echo "################################################################"
+    echo "################### Let us install Chadwm"
+    echo "################################################################"
+    tput sgr0
+    echo
+
+    func_install_chadwm
+fi
+
+echo
+tput setaf 6
+echo "######################################################"
+echo "###################  $(basename $0) done"
+echo "######################################################"
+tput sgr0
+echo

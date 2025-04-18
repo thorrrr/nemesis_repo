@@ -22,121 +22,96 @@ installed_dir=$(dirname $(readlink -f $(basename `pwd`)))
 
 ##################################################################################################################
 
+if [ "$DEBUG" = true ]; then
+    echo
+    echo "------------------------------------------------------------"
+    echo "Running $(basename $0)"
+    echo "------------------------------------------------------------"
+    echo
+    read -n 1 -s -r -p "Debug mode is on. Press any key to continue..."
+    echo
+fi
+
+##################################################################################################################
+
+#nemesis-repo added to /etc/pacman.conf
+
+if grep -q nemesis_repo /etc/pacman.conf; then
+
+  echo
+  tput setaf 2
+  echo "################################################################"
+  echo "################### nemesis_repo is already in /etc/pacman.conf"
+  echo "################################################################"
+  tput sgr0
+  echo
+
+else
+
+  tput setaf 2
+  echo "################################################################"
+  echo "################### nemesis_repo added to /etc/pacman.conf"
+  echo "################################################################"
+  tput sgr0
+
+echo '
+
+[nemesis_repo]
+SigLevel = Optional TrustedOnly
+Server = https://erikdubois.github.io/$repo/$arch' | sudo tee -a /etc/pacman.conf
+fi
+
+sudo pacman -Sy
+
 echo
 tput setaf 2
 echo "################################################################"
-echo "################### ArcoLinux Software to install"
+echo "################### Installing software from nemesis_repo"
 echo "################################################################"
 tput sgr0
 echo
 
-if grep -q arcolinux_repo /etc/pacman.conf; then
+# removing all conflicting packages with edu-dot-files-gits
+sudo pacman -R --noconfirm arcolinux-bin-git
+sudo pacman -R --noconfirm arcolinux-system-config-git
+sudo pacman -R --noconfirm arcolinux-bootloader-systemd-boot-git
+sudo pacman -R --noconfirm arcolinux-config-all-desktops-git
+sudo pacman -R --noconfirm arcolinux-alacritty-git
+sudo pacman -R --noconfirm arcolinux-btop-git
+sudo pacman -R --noconfirm arcolinux-gtk-surfn-arc-git
+sudo pacman -R --noconfirm arcolinux-gtk-surfn-plasma-dark-git
+sudo pacman -R --noconfirm arcolinux-config-all-desktops-git
+sudo pacman -R --noconfirm arcolinux-paru-git
+sudo pacman -R --noconfirm arcolinux-qt5-git
 
-  echo
-  tput setaf 2
-  echo "################################################################"
-  echo "################ ArcoLinux repos are already in /etc/pacman.conf "
-  echo "################################################################"
-  tput sgr0
-  echo
-  else
-  echo
-  tput setaf 2
-  echo "################################################################"
-  echo "################### Getting the keys and mirrors for ArcoLinux"
-  echo "################################################################"
-  tput sgr0
-  echo
-  sh arch/get-the-keys-and-repos.sh
-  sudo pacman -Sy
-fi
+sudo pacman -S --noconfirm --needed edu-dot-files-git
 
-sudo pacman -S --noconfirm --needed a-candy-beauty-icon-theme-git
-sudo pacman -S --noconfirm --needed arcolinux-app-glade-git
-sudo pacman -S --noconfirm --needed arcolinux-hblock-git
-sudo pacman -S --noconfirm --needed archlinux-tweak-tool-git
-sudo pacman -S --noconfirm --needed arcolinux-wallpapers-git
-
-if [ ! -f /usr/share/wayland-sessions/plasma.desktop ]; then
-  sudo pacman -S --noconfirm --needed archlinux-logout-git
-  sudo pacman -S --noconfirm --needed arcolinux-arc-dawn-git
-fi
-
-###############################################################################
-
-# when on Plasma X11
-
-if [ -f /usr/bin/startplasma-x11 ]; then
-
-  echo
-  tput setaf 2
-  echo "################################################################"
-  echo "################### Plasma X11 related applications"
-  echo "################################################################"
-  tput sgr0
-  echo
-
-  #sudo pacman -S --noconfirm --needed arcolinux-plasma-arc-dark-candy-git
-  #sudo pacman -S --noconfirm --needed arcolinux-plasma-nordic-darker-candy-git
-  #sudo pacman -S --noconfirm --needed surfn-plasma-dark-icons-git
-  #sudo pacman -S --noconfirm --needed surfn-plasma-light-icons-git
-fi
-
-# when on Plasma Wayland
-
-if [ -f /usr/share/wayland-sessions/plasma.desktop ]; then
-
-  echo
-  tput setaf 2
-  echo "################################################################"
-  echo "################### Plasma wayland related applications"
-  echo "################################################################"
-  tput sgr0
-  echo
-  sudo pacman -S --noconfirm --needed surfn-plasma-dark-icons-git
-  sudo pacman -S --noconfirm --needed surfn-plasma-light-icons-git
-fi
-
-
-if [ -f /usr/share/xsessions/xfce.desktop ]; then
-
-  echo
-  tput setaf 2
-  echo "################################################################"
-  echo "################### Installing software for Xfce"
-  echo "################################################################"
-  tput sgr0
-  echo
-
-  sudo pacman -S --noconfirm --needed arcolinux-arc-kde
-
-fi
-
-if [ -f /usr/share/xsessions/cinnamon.desktop ]; then
-
-  echo
-  tput setaf 2
-  echo "################################################################"
-  echo "################### Installing software for Cinnamon"
-  echo "################################################################"
-  tput sgr0
-  echo
-
-  sudo pacman -S --noconfirm --needed nemo-fileroller
-  sudo pacman -S --noconfirm --needed cinnamon-translations
-  sudo pacman -S --noconfirm --needed mintlocale
-  sudo pacman -S --noconfirm --needed iso-flag-png
-  sudo pacman -S --noconfirm --needed gnome-terminal
-  sudo pacman -S --noconfirm --needed gnome-system-monitor
-  sudo pacman -S --noconfirm --needed gnome-screenshot
-  sudo pacman -S --noconfirm --needed xed
-
-fi
+sudo pacman -S --noconfirm --needed arc-gtk-theme
+sudo pacman -S --noconfirm --needed archlinux-logout-git
+sudo pacman -S --noconfirm --needed edu-arc-dawn-git
+sudo pacman -S --noconfirm --needed edu-arc-kde
+sudo pacman -S --noconfirm --needed edu-hblock-git
+sudo pacman -S --noconfirm --needed edu-rofi-git
+sudo pacman -S --noconfirm --needed edu-rofi-themes-git
+sudo pacman -S --noconfirm --needed edu-sddm-simplicity-git
+sudo pacman -S --noconfirm --needed edu-shells-git
+sudo pacman -S --noconfirm --needed edu-variety-config-git
+sudo pacman -S --noconfirm --needed edu-xfce-git
+sudo pacman -S --noconfirm --needed flameshot-git
+sudo pacman -S --noconfirm --needed gitahead-git
+sudo pacman -S --noconfirm --needed hardcode-fixer-git
+sudo pacman -S --noconfirm --needed lastpass
+sudo pacman -S --noconfirm --needed neo-candy-icons-git
+sudo pacman -S --noconfirm --needed pamac-aur
+sudo pacman -S --noconfirm --needed rofi-lbonn-wayland
+sudo pacman -S --noconfirm --needed sparklines-git
+sudo pacman -S --noconfirm --needed surfn-icons-git
+sudo pacman -S --noconfirm --needed wttr
 
 echo
 tput setaf 6
-echo "################################################################"
-echo "################### Done"
-echo "################################################################"
+echo "######################################################"
+echo "###################  $(basename $0) done"
+echo "######################################################"
 tput sgr0
 echo

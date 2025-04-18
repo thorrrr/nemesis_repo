@@ -70,6 +70,9 @@ if grep -q "Nobara" /etc/os-release; then run_script "nobara"; fi
 if grep -q "Fedora" /etc/os-release; then run_script "fedora"; fi
 if grep -q "Solus" /etc/os-release; then run_script "solus"; fi
 
+echo "Use the script give-me-pacman.conf.sh to only get the new /etc/pacman.conf"
+echo "Stop this script with CTRL + C then and run it"
+
 echo
 tput setaf 3
 echo "################################################################"
@@ -85,56 +88,61 @@ if [[ "$response" == [yY] ]]; then
     touch /tmp/install-chadwm
 fi
 
-if grep -q 'arcolinux_repo' /etc/pacman.conf && \
-   grep -q 'arcolinux_repo_3party' /etc/pacman.conf; then
+##################################################################################################################
 
+if ! grep -q -e "Manjaro" -e "Artix" /etc/os-release; then
+
+  echo "Deleting current /etc/pacman.d/mirrorlist and replacing with"
   echo
-  tput setaf 2
-  echo "################################################################"
-  echo "################ ArcoLinux repos are already in /etc/pacman.conf "
-  echo "################################################################"
-  tput sgr0
+echo "## Best Arch Linux servers worldwide from arcolinux-nemesis
+
+Server = https://geo.mirror.pkgbuild.com/\$repo/os/\$arch
+Server = http://mirror.rackspace.com/archlinux/\$repo/os/\$arch
+Server = https://mirror.rackspace.com/archlinux/\$repo/os/\$arch
+Server = https://mirror.osbeck.com/archlinux/\$repo/os/\$arch
+Server = http://mirror.osbeck.com/archlinux/\$repo/os/\$arch
+Server = https://mirrors.kernel.org/archlinux/\$repo/os/\$arch"  | sudo tee /etc/pacman.d/mirrorlist
   echo
-  else
-  echo
-  tput setaf 2
-  echo "################################################################"
-  echo "################### Getting the keys and mirrors for ArcoLinux"
-  echo "################################################################"
-  tput sgr0
-  echo
-  sh arch/get-the-keys-and-repos.sh
-  sudo pacman -Sy
 fi
 
-# only for arcoinstall
-if grep -q 'arcoinstall' /etc/pacman.conf ;then
-  sudo cp /etc/pacman.conf /etc/pacman.conf.backup
-  sudo wget https://raw.githubusercontent.com/arconetpro/arconet-iso/refs/heads/main/archiso/airootfs/etc/pacman.conf -O /etc/pacman.conf
+tput setaf 2
+echo "########################################################################"
+echo "Arch Linux Servers have been written to /etc/pacman.d/mirrorlist"
+echo "Use nmirrorlist to inspect"
+echo "########################################################################"
+tput sgr0
+echo
+
+# Installing chaotic-aur keys and mirrors
+pkg_dir="packages"
+
+# Ensure directory exists
+if [[ ! -d "$pkg_dir" ]]; then
+    echo "Directory not found: $pkg_dir"
+    exit 1
 fi
+
+# Install all local packages using pacman
+find "$pkg_dir" -maxdepth 1 -name '*.pkg.tar.zst' -print0 | sudo xargs -0 pacman -U --noconfirm
+
+
+# personal pacman.conf for Erik Dubois
+if [[ ! -f /etc/pacman.conf.nemesis ]]; then
+    sudo cp /etc/pacman.conf /etc/pacman.conf.nemesis
+else
+    echo "Backup already exists: /etc/pacman.conf.nemesis"
+fi
+
+sudo cp pacman.conf /etc/pacman.conf
+
+sudo pacman -Syyu --noconfirm
 
 # only for ArchBang
-sh 410-intervention*
-
-# Check if arcolinux-repos etc are there
-if ! pacman -Qi arcolinux-keyring &> /dev/null; then
-    sh arch/get-the-keys-and-repos.sh
-    sudo pacman -Syyu
-fi
+sh 600-intervention*
 
 sudo pacman -S sublime-text-4 --noconfirm --needed
 sudo pacman -S ripgrep --noconfirm --needed
 sudo pacman -S meld --noconfirm --needed
-
-echo
-tput setaf 3
-echo "################################################################"
-echo "################### Pacman parallel downloads to 22"
-echo "################################################################"
-tput sgr0
-echo
-
-sudo sed -i 's/^#*ParallelDownloads = .*/ParallelDownloads = 22/' /etc/pacman.conf
 
 echo
 tput setaf 3
@@ -160,14 +168,12 @@ if [ -f /etc/dev-rel ]; then
     fi
 fi
 
-sh 400-remove-software*
-
-sh 100-install-nemesis-software*
-sh 110-install-arcolinux-software*
+sh 100-remove-software*
+sh 110-install-nemesis-software*
 sh 120-install-core-software*
-sh 150-install-chadwm.sh*
+sh 150-install-chadwm*
 sh 160-install-bluetooth*
-sh 170-install-cups*s
+sh 170-install-cups*
 #sh 180-install-test-software*
 
 sh 200-software-AUR-repo*
@@ -185,15 +191,11 @@ installed_dir=$(dirname $(readlink -f $(basename `pwd`)))
 cd $installed_dir/Personal
 
 sh 900-*
-sh 910-*
-sh 920-*
+
 sh 930-*
-sh 940-*
 sh 950-*
 
-sh 960-*
 
-sh 969-skel*
 
 sh 970-all*
 
@@ -214,7 +216,9 @@ sh 970-manjaro*
 #has to be last - they are all Arch
 sh 970-arch.sh
 
-sh 999-what*
+sh 990-skel*
+
+sh 999-last*
 
 tput setaf 3
 echo "################################################################"
