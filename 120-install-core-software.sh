@@ -71,24 +71,31 @@ sudo pacman -S --noconfirm --needed baobab
 sudo pacman -S --noconfirm --needed bash-completion
 sudo pacman -S --noconfirm --needed bat
 sudo pacman -S --noconfirm --needed bibata-cursor-theme
+sudo pacman -S --noconfirm --needed bitwarden
 sudo pacman -S --noconfirm --needed brave-bin
 sudo pacman -S --noconfirm --needed breeze-icons
-sudo pacman -S --noconfirm --needed btop
+sudo pacman -S --noconfirm --needed btrfs-assistant
+sudo pacman -S --noconfirm --needed btrfs-progs
+sudo pacman -S --noconfirm --needed btrfsmaintenance
 sudo pacman -S --noconfirm --needed curl
 sudo pacman -S --noconfirm --needed dconf-editor
 sudo pacman -S --noconfirm --needed devtools
 sudo pacman -S --noconfirm --needed discord
 sudo pacman -S --noconfirm --needed downgrade
+sudo pacman -S --noconfirm --needed drawio-desktop
 if [ ! -f /usr/bin/duf ]; then
   sudo pacman -S --noconfirm --needed duf
 fi
+sudo pacman -S --noconfirm --needed espanso-x11-bin
 sudo pacman -S --noconfirm --needed expac
 sudo pacman -S --noconfirm --needed feh
 sudo pacman -S --noconfirm --needed fastfetch-git
 sudo pacman -S --noconfirm --needed file-roller
 sudo pacman -S --noconfirm --needed firefox
 sudo pacman -S --noconfirm --needed fish
+sudo pacman -S --noconfirm --needed flameshot
 sudo pacman -S --noconfirm --needed font-manager
+sudo pacman -S --noconfirm --needed ghostty
 sudo pacman -S --noconfirm --needed gimp
 sudo pacman -S --noconfirm --needed git
 sudo pacman -S --noconfirm --needed gnome-disk-utility
@@ -98,9 +105,13 @@ sudo pacman -S --noconfirm --needed gvfs-dnssd
 sudo pacman -S --noconfirm --needed hardcode-fixer-git
 sudo pacman -S --noconfirm --needed hardinfo2
 sudo pacman -S --noconfirm --needed hddtemp
+sudo pacman -S --noconfirm --needed hexchat
 sudo pacman -S --noconfirm --needed hw-probe
+sudo pacman -S --noconfirm --needed kitty
+sudo pacman -S --noconfirm --needed laptop-detect
 sudo pacman -S --noconfirm --needed linux-firmware-qlogic
 sudo pacman -S --noconfirm --needed logrotate
+sudo pacman -S --noconfirm --needed logseq-desktop-bin
 sudo pacman -S --noconfirm --needed lolcat
 sudo pacman -S --noconfirm --needed lollypop
 sudo pacman -S --noconfirm --needed lsb-release
@@ -132,8 +143,9 @@ sudo pacman -S --noconfirm --needed rsync
 sudo pacman -S --noconfirm --needed scrot
 sudo pacman -S --noconfirm --needed simplescreenrecorder
 sudo pacman -S --noconfirm --needed speedtest-cli
-sudo pacman -S --noconfirm --needed spotify
 sudo pacman -S --noconfirm --needed squashfs-tools
+sudo pacman -S --noconfirm --needed stacer-bin
+sudo pacman -S --noconfirm --needed syncthing
 sudo pacman -S --noconfirm --needed sublime-text-4
 sudo pacman -S --noconfirm --needed system-config-printer
 sudo pacman -S --noconfirm --needed telegram-desktop
@@ -159,6 +171,7 @@ sudo pacman -S --noconfirm --needed wd719x-firmware
 sudo pacman -S --noconfirm --needed wget
 sudo pacman -S --noconfirm --needed xdg-user-dirs
 sudo pacman -S --noconfirm --needed yay-git
+sudo pacman -S --noconfirm --needed zen-browser-bin
 sudo pacman -S --noconfirm --needed zsh
 sudo pacman -S --noconfirm --needed zsh-completions
 sudo pacman -S --noconfirm --needed zsh-syntax-highlighting
